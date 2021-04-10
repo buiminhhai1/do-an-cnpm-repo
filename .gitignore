@@ -1,0 +1,15 @@
+node_modules
+
+apps/**/node_modules
+apps/**/yarn.lock
+apps/**/yarn-error.log
+
+libs/**/node_modules
+libs/**/yarn.lock
+libs/**/yarn-error.log
+
+
+yarn.lock
+yarn-error.log
+
+coverage

@@ -1,0 +1,31 @@
+{
+  "name": "@haikms/contracts",
+  "version": "0.0.0",
+  "description": "Now I’m the model of a modern major general / The venerated Virginian veteran whose men are all / Lining up, to put me up on a pedestal / Writin’ letters to relatives / Embellishin’ my elegance and eloquence / But the elephant is in the room / The truth is in ya face when ya hear the British cannons go / BOOM",
+  "keywords": [],
+  "author": "buiminhhai1 <ngovietduc20088@gmail.com>",
+  "license": "MIT",
+  "main": "lib/contracts.js",
+  "directories": {
+    "lib": "lib"
+  },
+  "files": [
+    "lib"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@github.com/buiminhhai1/microservice-lerna-cqrs.git",
+    "directory": "libs/contracts"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "test": "echo \"Error: run tests from root\" && exit 1"
+  },
+  "bugs": {
+    "url": "https://github.com/buiminhhai1/microservice-lerna-cqrs.git/issues"
+  },
+  "homepage": "https://github.com/buiminhhai1/microservice-lerna-cqrs.git#readme",
+  "gitHead": "cac9db72ee2827eb938993335b292fbba1646d60"
+}

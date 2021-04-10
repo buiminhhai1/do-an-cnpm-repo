@@ -1,0 +1,30 @@
+{
+  "name": "microservice-lerna-cqrs",
+  "npmClient": "yarn",
+  "useWorkspace": true,
+  "scripts": {
+    "bootstrap": "lerna bootstrap",
+    "lint": "lerna run lint --parallel",
+    "setup": "yarn install && yarn bootstrap",
+    "start": "lerna run start --parallel"
+  },
+  "command": {
+    "bootstrap": {
+      "npmClientArgs": [
+        "--network-timeout 60000",
+        "--network-concurrency 8",
+        "--verbose"
+      ]
+    },
+    "publish": {
+      "conventionalCommits": true,
+      "message": "chore(release): publish",
+      "allowBranch": "master"
+    }
+  },
+  "packages": [
+    "apps/*",
+    "libs/*"
+  ],
+  "version": "independent"
+}
