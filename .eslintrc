@@ -1,0 +1,111 @@
+{
+  "root": true,
+  "plugins": [
+    "@typescript-eslint",
+    "import",
+    "prettier"
+  ],
+  "extends": [
+    "plugin:@typescript-eslint/eslint-recommended",
+    "plugin:@typescript-eslint/recommended"
+  ],
+  "parser": "@typescript-eslint/parser",
+  "parserOptions": {
+    "ecmaVersion": 2017,
+    "sourceType": "module"
+  },
+  "settings": {
+    "import/extensions": [
+      ".js",
+      ".json",
+      ".ts"
+    ],
+    "import/parsers": {
+      "@typescript-eslint/parser": [
+        ".ts",
+        ".tsx"
+      ]
+    },
+    "import/resolver": {
+      "node": {
+        "extensions": [
+          ".js",
+          ".ts"
+        ]
+      },
+      "typescript": {
+        "directory": [
+          "./*/tsconfig.json"
+        ]
+      }
+    }
+  },
+  "rules": {
+    "quotes": "off",
+    "@typescript-eslint/quotes": ["error"],
+    "no-underscore-dangle": "off",
+    "operator-linebreak": "off",
+    "import/prefer-default-export": "off",
+    "max-classes-per-file": "off",
+    "no-console": "warn",
+    "no-unused-expressions": [
+      "warn",
+      {
+        "allowShortCircuit": true
+      }
+    ],
+    "func-names": [
+      "warn",
+      "as-needed"
+    ],
+    "import/extensions": [
+      "error",
+      "ignorePackages",
+      {
+        "js": "never",
+        "ts": "never"
+      }
+    ],
+    "import/no-extraneous-dependencies": [
+      "error",
+      {
+        "devDependencies": [
+          "**/*.test.js",
+          "**/*.test.ts",
+          "**/*.e2e.js",
+          "**/*.e2e.ts"
+        ]
+      }
+    ],
+    "@typescript-eslint/consistent-type-assertions": [
+      "error",
+      {
+        "assertionStyle": "angle-bracket"
+      }
+    ],
+    "@typescript-eslint/no-var-requires": "off",
+    "no-param-reassign": "off",
+    "@typescript-eslint/interface-name-prefix": "off",
+    "@typescript-eslint/explicit-module-boundary-types": "off",
+    "@typescript-eslint/no-explicit-any": "off",
+    "class-methods-use-this": "off",
+    "no-unexpected-multiline": "error",
+    "no-useless-constructor": "off",
+    "@typescript-eslint/no-parameter-properties": "off",
+    "@typescript-eslint/explicit-member-accessibility": [
+      "off",
+      {
+        "overrides": {
+          "constructors": "no-public"
+        }
+      }
+    ],
+    "@typescript-eslint/explicit-function-return-type": [
+      "warn",
+      {
+        "allowExpressions": true,
+        "allowHigherOrderFunctions": true
+      }
+    ]
+  }
+}

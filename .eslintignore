@@ -1,0 +1,23 @@
+# Core
+/.git
+lerna.json
+package.json
+tsconfig.*
+
+# Third party
+**/node_modules
+
+# Temp
+**/.cache
+
+# Build products
+libs/**/build
+libs/**/dist
+services/**/build
+services/**/dist
+
+# Tests
+libs/**/fixtures
+libs/**/coverage
+services/**/fixtures
+services/**/coverage
