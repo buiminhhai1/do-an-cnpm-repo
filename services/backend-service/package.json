@@ -12,7 +12,7 @@
   },
   "scripts": {
     "prebuild": "rimraf dist",
-    "build": "nest build",
+    "build": "tsc -b tsconfig.json",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
     "dev": "dotenv -- ts-node-dev -r tsconfig-paths/register ./src/main.ts",
     "start:dev": "dotenv -- ts-node-dev -r tsconfig-paths/register ./src/main.ts",

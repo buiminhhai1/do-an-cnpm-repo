@@ -13,6 +13,7 @@ module.exports = {
         PGDATABASE: 'postgres',
         PGPASSWORD: 'password',
         PGPORT: 5432,
+        PORT: 8000,
       },
       env_production: {
         TYPEORM_CONNECTION: 'postgres',
@@ -24,7 +25,7 @@ module.exports = {
         DATABASE_URI: 'postgres://postgres:password@3.0.95.43:5432/postgres',
         DEV_TENANT_ID: '73e7859d-49e3-4a4f-bff7-9b03df1da0eb',
         JWT_SECRET: 'jwt_secret',
-        PORT: 8000,
+        PORT: 3000,
         NODE_ENV: 'production',
       },
     },
