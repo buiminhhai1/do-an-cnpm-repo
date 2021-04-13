@@ -8,18 +8,19 @@
   "private": true,
   "husky": {
     "hooks": {
-      "pre-commit": "lint-staged",
+      "pre-commit": "lerna run lint-staged",
       "pre-push": "yarn test"
     }
   },
   "lint-staged": {
-    "*.ts": [
-      "yarn format",
+    "**/*.+(js|ts)": [
       "yarn lint",
+      "yarn lint:fix",
       "git add"
     ]
   },
   "scripts": {
+    "postinstall": "husky install",
     "bootstrap": "lerna bootstrap",
     "lint": "eslint --color --ignore-path ./.eslintignore \"**/*.[jt]s\"",
     "lint:fix": "eslint --color --ignore-path ./.eslintignore \"**/*.[jt]s\" --fix"

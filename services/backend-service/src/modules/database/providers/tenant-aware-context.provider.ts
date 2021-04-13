@@ -6,7 +6,7 @@ const logger = new Logger('TenantAwareContextProvider');
 
 class ContextCredential {
   id: string;
-  tenantId: any;
+  tenantId: string;
 }
 
 export class TenantAwareContext {
@@ -16,14 +16,14 @@ export class TenantAwareContext {
     return this.credential.id;
   }
 
-  get tenantId(): any {
+  get tenantId(): string {
     return this.credential.tenantId;
   }
 }
 
 export const TenantAwareContextProvider = {
   provide: TenantAwareContext,
-  useFactory: async (httpRequest: CustomHttpRequest) => {
+  useFactory: async (httpRequest: CustomHttpRequest): Promise<TenantAwareContext> => {
     // Handle request from HTTP
     logger.warn(' - Go to context provider');
     if (httpRequest?.tenantId) {

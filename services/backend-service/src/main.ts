@@ -55,6 +55,6 @@ const bootstrapApplication = async () => {
 };
 
 export default bootstrapApplication().catch((err) => {
-  console.error(err);
+  logger.log(err);
   process.exit(1);
 });

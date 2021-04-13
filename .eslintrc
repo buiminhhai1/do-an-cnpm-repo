@@ -34,7 +34,7 @@
         ]
       },
       "typescript": {
-        "directory": [
+        "project": [
           "./*/tsconfig.json"
         ]
       }
