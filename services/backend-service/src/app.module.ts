@@ -1,7 +1,7 @@
-import { AuthMiddleware, JWTConfigurationProvider, TenantContextMiddleware } from '@common';
-import { AuthModule, AuthService } from '@modules/auth';
 import { MiddlewareConsumer, Module, NestModule, RequestMethod } from '@nestjs/common';
 import { JwtModule } from '@nestjs/jwt';
+import { AuthMiddleware, JWTConfigurationProvider, TenantContextMiddleware } from '@common';
+import { AuthModule, AuthService } from '@modules/auth';
 
 import { DatabaseModule } from './modules/database';
 

@@ -1,5 +1,5 @@
 import { ForbiddenException, Injectable, Logger, NestMiddleware } from '@nestjs/common';
-import { UserRole } from '../../entities';
+import { UserRole } from '@entities';
 import { CustomHttpRequest } from '../interfaces';
 
 @Injectable()

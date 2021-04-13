@@ -5,7 +5,7 @@ import { UserRole } from '@entities';
 export class AdminGuard implements CanActivate {
   canActivate(context: ExecutionContext): boolean | Promise<boolean> {
     const request = context.switchToHttp().getRequest();
-    if (request.vaiTro === UserRole.admin) {
+    if (request.role === UserRole.admin) {
       return true;
     }
     return false;

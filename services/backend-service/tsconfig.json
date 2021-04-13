@@ -12,8 +12,8 @@
     "baseUrl": ".",
     "incremental": true,
     "paths": {
-      "@common": ["src/common/index.ts"],
-      "@entities": ["src/entities/index.ts"],
+      "@common": ["src/common"],
+      "@entities": ["src/entities"],
       "@modules/*": ["src/modules/*"]
     }
   }
