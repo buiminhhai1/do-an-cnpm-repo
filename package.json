@@ -10,10 +10,16 @@
     "bootstrap": "lerna bootstrap",
     "lint": "eslint --color --ignore-path ./.eslintignore \"**/*.[jt]s\"",
     "lint:fix": "eslint --color --ignore-path ./.eslintignore \"**/*.[jt]s\" --fix",
-    "test": "lerna run test"
+    "test": "lerna run test",
+    "pretty": "prettier-eslint --write \"**/*.[jt]s\"",
+    "ecosystem:up": "docker-compose -f docker-compose.ecosystem.yml up -d",
+    "ecosystem:down": "docker-compose -f docker-compose.ecosystem.yml down",
+    "ecosystem:start": "docker-compose -f docker-compose.ecosystem.yml start",
+    "ecosystem:stop": "docker-compose -f docker-compose.ecosystem.yml stop"
   },
   "devDependencies": {
     "@commitlint/cli": "12.1.1",
+    "@commitlint/config-conventional": "^12.1.1",
     "@typescript-eslint/eslint-plugin": "4.22.0",
     "eslint": "7.24.0",
     "eslint-config-airbnb": "18.2.1",
@@ -38,5 +44,23 @@
   "workspaces": [
     "services/*",
     "libs/*"
-  ]
+  ],
+  "commitlint": {
+    "extends": [
+      "@commitlint/config-conventional"
+    ]
+  },
+  "lint-staged": {
+    "*.{js,jsx,ts,tsx}": [
+      "prettier-eslint --write",
+      "git add",
+      "eslint --color --ignore-path ./.eslintignore"
+    ]
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": "lint-staged",
+      "commit-msg": "commitlint -c -E HUSKY_GIT_PARAMS"
+    }
+  }
 }
