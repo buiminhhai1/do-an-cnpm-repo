@@ -4,7 +4,7 @@
     </a>
 </p>
 
-<h2 align="center"><a href="https://github.com/buiminhhai1/ultimate-backend-repo">Microservice-lerna-cqrs</a></h2>
+<h2 align="center"><a href="https://github.com/buiminhhai1/ultimate-backend-repo">Đồ Án Công Nghệ Phầm Mềm Monorepo</a></h2>
 
 <p align="center">
     <a href="https://lerna.js.org/" rel="nofollow noreferrer" target="_blank"><img src="https://img.shields.io/badge/maintained%20with-lerna-cc00ff.svg" alt="lerna"></a>
@@ -52,7 +52,7 @@ There're some knowing issues with **Windows** users:
 
 - [Node.js](https://nodejs.org/en/download): JavaScript runtime
   
-  > Recommended version `12.x LTS`.
+  > Recommended version `14.x LTS`.
 
 - [Yarn](https://yarnpkg.com): Dependency management tool
 
