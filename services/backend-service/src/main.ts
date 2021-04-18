@@ -13,10 +13,9 @@ import {
   swaggerConfiguration,
 } from './common';
 import { google } from 'googleapis';
-import { Url } from 'node:url';
-import { multer } from 'multer';
-import fs from 'fs';
-import { file } from 'googleapis/build/src/apis/file';
+import { dirname } from 'node:path';
+var multer = require('multer');
+var fs = require('fs');
 
 const CLIENT_ID = process.env.client_id;
 const CLIENT_SECRET = process.env.client_secret;
@@ -122,19 +121,21 @@ const bootstrapApplication = async () => {
   app.use('/upload', (req, res) => {
     upload(req, res, (error) => {
       if (error) throw error
-      console.log(req.file.path);
+
+      console.log(__dirname);
+
       const drive = google.drive({
         version: 'v3',
         auth: oAuth2Client
       });
 
       const filemetadata = {
-        name: req.file.filename
+        name: "anhnguyenpro"
       }
 
       const media = {
-        mimeType: req.file.mimeType,
-        body: fs.createReadStream(req.file.path)
+        mimeType: "[*/*]",
+        body: fs.createReadStream(__dirname + "/document/10.1.1.228.2958.pdf")
       }
 
       drive.files.create({
@@ -145,8 +146,8 @@ const bootstrapApplication = async () => {
         if (error) throw error;
 
         // delete the file images folder
-
-        fs.unlinkSync(req.file.path);
+        console.log(file);
+        fs.unlinkSync(__dirname + "/document/10.1.1.228.2958.pdf");
         res.json({ name: name, pic: pic, success: false });
       })
     })
