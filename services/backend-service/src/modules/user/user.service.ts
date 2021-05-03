@@ -24,7 +24,7 @@ export class UserService {
   async register(payload: CredentialDTO): Promise<Partial<UserEntity>> {
     const user = await this.userRepo
       .createQueryBuilder('user')
-      .where('user.usename = :username', { username: payload.username })
+      .where('user.username = :username', { username: payload.username })
       .getOne();
     if (user) {
       throw new ConflictException(`Username ${payload.username} already exist!`);
