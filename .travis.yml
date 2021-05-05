@@ -1,4 +1,23 @@
 sudo: required
+# specify language
+language: node_js
+
+# specify language options
+node_js:
+- '0.10'
+- '0.11'
+
+# configure which branches to run
+branches:
+  # whitelist
+  only:
+    - master
+    - /^deploy-.*$/ # regex ok
+  # blacklist
+  except:
+    - dontrunme
+    - test
+
 services:
   - docker
 
