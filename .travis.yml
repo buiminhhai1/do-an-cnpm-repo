@@ -12,12 +12,7 @@ branches:
   # whitelist
   only:
     - master
-    - /^deploy-.*$/ # regex ok
-  # blacklist
-  except:
-    - dontrunme
-    - test
-
+    - /deploy:.*$/ # regex ok
 services:
   - docker
 
