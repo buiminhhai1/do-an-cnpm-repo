@@ -4,6 +4,7 @@ import { AuthMiddleware, JWTConfigurationProvider, TenantContextMiddleware } fro
 import { AuthModule, AuthService } from '@modules/auth';
 
 import { DatabaseModule } from './modules/database';
+import { DocumentModule } from '@modules/docs/doc.module';
 
 @Module({
   imports: [
@@ -14,6 +15,7 @@ import { DatabaseModule } from './modules/database';
       global: true,
     },
     AuthModule,
+    DocumentModule,
   ],
   providers: [AuthService],
   exports: [AuthService],
@@ -24,10 +26,17 @@ export class AppModule implements NestModule {
       .apply(TenantContextMiddleware)
       .forRoutes('*')
       .apply(AuthMiddleware)
-      .exclude('/swagger', '/health', '/auth/register', '/auth/login', {
-        path: '/authors',
-        method: RequestMethod.GET,
-      })
+      .exclude(
+        '/swagger',
+        '/health',
+        '/auth/register',
+        '/auth/login',
+        {
+          path: '/authors',
+          method: RequestMethod.GET,
+        },
+        '/docs/upload',
+      )
       .forRoutes('*')
       .apply(TenantContextMiddleware)
       .forRoutes('/auth/admin');
