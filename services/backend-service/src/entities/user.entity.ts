@@ -1,6 +1,6 @@
 import { BaseEntity } from './base';
 import { Column, Entity, OneToMany, Unique } from 'typeorm';
-import { DocumentEntity } from './document.entity';
+import { GoogleDriveEntity } from './googledrive.entity';
 
 export enum UserRole {
   admin = 'admin',
@@ -38,6 +38,6 @@ export class UserEntity extends BaseEntity {
   })
   public role: UserRole;
 
-  @OneToMany(() => DocumentEntity, (document) => document.user)
-  public documents: DocumentEntity[];
+  @OneToMany(() => GoogleDriveEntity, (document) => document.user)
+  public documents: GoogleDriveEntity[];
 }

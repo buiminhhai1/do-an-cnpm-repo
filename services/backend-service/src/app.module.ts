@@ -4,7 +4,7 @@ import { AuthMiddleware, JWTConfigurationProvider, TenantContextMiddleware } fro
 import { AuthModule, AuthService } from '@modules/auth';
 
 import { DatabaseModule } from './modules/database';
-import { DocumentModule } from '@modules/docs/doc.module';
+import { GoogleDriveModule } from '@modules/googledrive/googledrive.module';
 
 @Module({
   imports: [
@@ -15,7 +15,7 @@ import { DocumentModule } from '@modules/docs/doc.module';
       global: true,
     },
     AuthModule,
-    DocumentModule,
+    GoogleDriveModule,
   ],
   providers: [AuthService],
   exports: [AuthService],
@@ -26,19 +26,23 @@ export class AppModule implements NestModule {
       .apply(TenantContextMiddleware)
       .forRoutes('*')
       .apply(AuthMiddleware)
-      .exclude(
-        '/swagger',
-        '/health',
-        '/auth/register',
-        '/auth/login',
-        {
-          path: '/authors',
-          method: RequestMethod.GET,
-        },
-        '/docs/upload',
-      )
+      .exclude('/swagger', '/health', '/auth/register', '/auth/login', {
+        path: '/authors',
+        method: RequestMethod.GET,
+      })
       .forRoutes('*')
       .apply(TenantContextMiddleware)
-      .forRoutes('/auth/admin');
+      .forRoutes(
+        '/auth/admin',
+        '/googledrive/new_file',
+        {
+          path: '/googledrive/list_file',
+          method: RequestMethod.GET,
+        },
+        {
+          path: '/googledrive/single_file',
+          method: RequestMethod.DELETE,
+        },
+      );
   }
 }
