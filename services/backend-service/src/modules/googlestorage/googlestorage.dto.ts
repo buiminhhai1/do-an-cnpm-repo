@@ -7,43 +7,25 @@ import { IsString } from 'class-validator';
  */
 export class UploadDTO {
   @ApiProperty()
-  @IsString()
-  public name: string;
-
-  @ApiProperty()
-  @IsString()
-  public type: string;
-
-  @ApiProperty()
-  @IsString()
-  public file: string;
+  // @IsString()
+  public files: any;
 }
 /**
  * Data Response
  */
-export class UploadDataDTO {
+export class UploadStatusResponse {
   public id: string;
   public name: string;
   public type: string;
-}
-// _______________
-export class UploadStatusResponse {
-  public statusCode: number;
-  public data: UploadDataDTO = new UploadDataDTO();
-  public reNewData(): void {
-    this.statusCode = 401;
-    this.data.id = '';
-    this.data.name = '';
-    this.data.type = '';
-  }
 }
 // MARK:- List file
 /**
  * Data Response
  */
 export class ListFileDataResponse {
-  public statusCode: number;
-  public data: any;
+  public fileId: string;
+  public publicLink: string;
+  public download: string;
 }
 // MARK:- Delete file
 /**
@@ -58,6 +40,5 @@ export class DeleteDTO {
  * Data Response
  */
 export class DeleteDataResponse {
-  public statusCode: number;
   public data: any;
 }

@@ -4,7 +4,7 @@ import { AuthMiddleware, JWTConfigurationProvider, TenantContextMiddleware } fro
 import { AuthModule, AuthService } from '@modules/auth';
 
 import { DatabaseModule } from './modules/database';
-import { GoogleDriveModule } from '@modules/googledrive/googledrive.module';
+import { GoogleStorageModule } from '@modules/googlestorage/googlestorage.module';
 
 @Module({
   imports: [
@@ -15,7 +15,7 @@ import { GoogleDriveModule } from '@modules/googledrive/googledrive.module';
       global: true,
     },
     AuthModule,
-    GoogleDriveModule,
+    GoogleStorageModule,
   ],
   providers: [AuthService],
   exports: [AuthService],
@@ -34,13 +34,16 @@ export class AppModule implements NestModule {
       .apply(TenantContextMiddleware)
       .forRoutes(
         '/auth/admin',
-        '/googledrive/new_file',
         {
-          path: '/googledrive/list_file',
+          path: '/googlestorage/filses',
+          method: RequestMethod.POST,
+        },
+        {
+          path: '/googlestorage/filses',
           method: RequestMethod.GET,
         },
         {
-          path: '/googledrive/single_file',
+          path: '/googlestorage/files',
           method: RequestMethod.DELETE,
         },
       );

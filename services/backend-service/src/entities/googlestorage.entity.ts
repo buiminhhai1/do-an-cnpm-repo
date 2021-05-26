@@ -3,7 +3,7 @@ import { Column, Entity, ManyToOne } from 'typeorm';
 import { UserEntity } from './user.entity';
 
 @Entity()
-export class GoogleDriveEntity extends BaseEntity {
+export class GoogleStorageEntity extends BaseEntity {
   @Column()
   folderId: string;
 

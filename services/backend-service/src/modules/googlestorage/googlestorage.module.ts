@@ -2,13 +2,13 @@ import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { scanComponents, scanEntities } from '@common';
 import { DatabaseModule } from '@modules/database';
-import * as repositories from './googledrive.repository';
-import * as controllers from './googledrive.controller';
-import { GoogleDriveService } from './googledrive.service';
+import * as repositories from './googlestorage.repository';
+import * as controllers from './googlestorage.controller';
+import { GoogleStorageService } from './googlestorage.service';
 
 @Module({
   imports: [TypeOrmModule.forFeature([...scanEntities(repositories)]), DatabaseModule],
-  providers: [GoogleDriveService],
+  providers: [GoogleStorageService],
   controllers: [...scanComponents(controllers)],
 })
-export class GoogleDriveModule {}
+export class GoogleStorageModule {}

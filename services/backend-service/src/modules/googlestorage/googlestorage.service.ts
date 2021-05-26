@@ -7,32 +7,30 @@ import {
   ListFileDataResponse,
   UploadDTO,
   UploadStatusResponse,
-} from './googledrive.dto';
-import { GoogleDriveRepository } from './googledrive.repository';
+} from './googlestorage.dto';
+import { GoogleStorageRepository } from './googlestorage.repository';
 import { Stream } from 'stream';
-import { googleDriveConstants } from '../../common';
+import { googleStorageConstants } from '../../common';
 // MARK:- Properties
-const upload_response_json = new UploadStatusResponse();
 const bufferStream = new Stream.PassThrough();
 // Set const token always choosen account dx team
-googleDriveConstants.oAuth2Client.setCredentials({
-  refresh_token: googleDriveConstants.refresh_token,
+googleStorageConstants.oAuth2Client.setCredentials({
+  refresh_token: googleStorageConstants.refresh_token,
 });
 // Config drive function
 const drive = google.drive({
   version: 'v3',
-  auth: googleDriveConstants.oAuth2Client,
+  auth: googleStorageConstants.oAuth2Client,
 });
 
 @Injectable()
-export class GoogleDriveService {
+export class GoogleStorageService {
   constructor(
-    private readonly googleDriveRepo: GoogleDriveRepository,
+    private readonly googleStorageRepo: GoogleStorageRepository,
     @Inject(TenantAwareContext) private readonly context: TenantAwareContext,
   ) {}
   // MARK:- Upload file
-  async uploadFile(payload: Partial<UploadDTO>): Promise<UploadStatusResponse> {
-    upload_response_json.reNewData();
+  async uploadFile(payload: Partial<UploadDTO>): Promise<{ data: UploadStatusResponse }> {
     let isFileExist = false;
     let folder_id = '';
     try {
@@ -41,7 +39,7 @@ export class GoogleDriveService {
         q: `mimeType = 'application/vnd.google-apps.folder' and trashed=false`,
       });
       for (let i = 0; i < folders.data.files.length; i++) {
-        if (folders.data.files[i].name == this.context.userId) {
+        if (folders.data.files[i].name === this.context.userId) {
           folder_id = folders.data.files[i].id;
           isFileExist = true;
           break;
@@ -60,15 +58,14 @@ export class GoogleDriveService {
         await this.uploadDb(folder_id);
       }
       // Create stream buffer to create meta data for upload file on drive
-      const buf = Buffer.from(payload.file, 'base64');
-      bufferStream.end(buf);
+      bufferStream.end(payload.files[0].buffer);
 
       const fileMetaData = {
-        name: payload.name,
+        name: payload.files[0].originalname,
         parents: [folder_id],
       };
       const media = {
-        mimeType: payload.type,
+        mimeType: payload.files[0].mimetype,
         body: bufferStream,
       };
       // waiting for create file on drive
@@ -77,42 +74,40 @@ export class GoogleDriveService {
         media: media,
       });
       //
-      upload_response_json.statusCode = response.status;
       if (response.data != null) {
-        upload_response_json.data = {
-          id: response.data.id,
-          name: response.data.name,
-          type: response.data.mimeType,
+        return {
+          data: {
+            id: response.data.id,
+            name: response.data.name,
+            type: response.data.mimeType,
+          },
         };
-        return upload_response_json;
       } else {
-        return upload_response_json;
+        return { data: null };
       }
     } catch (e) {
-      //console.log(e);
-      upload_response_json.statusCode = 500;
-      return upload_response_json;
+      return { data: null };
     }
   }
   async uploadDb(folderId: string): Promise<boolean> {
-    const google_drive_model = await this.googleDriveRepo
+    const google_drive_model = await this.googleStorageRepo
       .createQueryBuilder('google_drive')
       .where('google_drive.userId = :userId', { userId: this.context.userId })
       .getOne();
     if (google_drive_model == null) {
-      await this.googleDriveRepo.save(
-        this.googleDriveRepo.create({ folderId: folderId, user: { id: this.context.userId } }),
+      await this.googleStorageRepo.save(
+        this.googleStorageRepo.create({ folderId: folderId, user: { id: this.context.userId } }),
       );
     } else {
       google_drive_model.folderId = folderId;
-      await this.googleDriveRepo.save(google_drive_model);
+      await this.googleStorageRepo.save(google_drive_model);
     }
     return true;
   }
 
-  async getAllFile(): Promise<ListFileDataResponse> {
+  async getAllFile(): Promise<{ data: ListFileDataResponse[] }> {
     try {
-      const google_drive_model = await this.googleDriveRepo
+      const google_drive_model = await this.googleStorageRepo
         .createQueryBuilder('google_drive')
         .where('google_drive.userId = :userId', { userId: this.context.userId })
         .getOne();
@@ -123,31 +118,21 @@ export class GoogleDriveService {
         const arrayList = [];
         for (let i = 0; i < files.data.files.length; i++) {
           arrayList.push({
-            fildeId: files.data.files[i].id,
+            fileId: files.data.files[i].id,
             ...(await this.generatePublicUrl(files.data.files[i].id)),
           });
         }
 
-        return {
-          statusCode: files.status,
-          data: arrayList,
-        };
+        return { data: arrayList };
       } else {
-        return {
-          statusCode: 400,
-          data: null,
-        };
+        return null;
       }
     } catch (error) {
-      //console.log(error);
-      return {
-        statusCode: 500,
-        data: null,
-      };
+      return null;
     }
   }
 
-  async generatePublicUrl(fileId: string): Promise<any> {
+  async generatePublicUrl(fileId: string): Promise<{ publicLink: string; download: string }> {
     try {
       await drive.permissions.create({
         fileId: fileId,
@@ -161,13 +146,13 @@ export class GoogleDriveService {
         fields: 'webViewLink, webContentLink',
       });
       return {
-        link: result.data.webViewLink,
+        publicLink: result.data.webViewLink,
         download: result.data.webContentLink,
       };
     } catch (error) {
       return {
-        link: '',
-        download: '',
+        publicLink: null,
+        download: null,
       };
     }
   }
@@ -178,10 +163,9 @@ export class GoogleDriveService {
       const response = await drive.files.delete({
         fileId: _query.fileId,
       });
-      return { statusCode: response.status, data: response.data };
+      return { data: response.data };
     } catch (error) {
-      //console.log(error);
-      return { statusCode: 500, data: null };
+      return { data: null };
     }
   }
 }
