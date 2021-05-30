@@ -11,8 +11,6 @@ import {
 import { GoogleStorageRepository } from './googlestorage.repository';
 import { Stream } from 'stream';
 import { googleStorageConstants } from '../../common';
-// MARK:- Properties
-const bufferStream = new Stream.PassThrough();
 // Set const token always choosen account dx team
 googleStorageConstants.oAuth2Client.setCredentials({
   refresh_token: googleStorageConstants.refresh_token,
@@ -58,6 +56,8 @@ export class GoogleStorageService {
         await this.uploadDb(folder_id);
       }
       // Create stream buffer to create meta data for upload file on drive
+      // MARK:- Properties
+      const bufferStream = new Stream.PassThrough();
       bufferStream.end(payload.files[0].buffer);
 
       const fileMetaData = {
