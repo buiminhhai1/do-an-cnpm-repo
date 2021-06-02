@@ -1,13 +1,11 @@
-sudo: required
 # specify language
 language: node_js
-
+os: linux
 # specify language options
 node_js:
 - 14.9
 # configure which branches to run
 branches:
-  # whitelist
   only:
     - master
     - /deploy:.*$/ # regex ok
