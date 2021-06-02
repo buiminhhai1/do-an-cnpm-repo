@@ -48,7 +48,6 @@ const bootstrapApplication = async () => {
 
   const document = SwaggerModule.createDocument(app, swaggerConfiguration);
   SwaggerModule.setup('/swagger', app, document);
-
   await app.listenAsync(serverPort);
   logger.log(`HTTP server is up & running on http://localhost:${serverPort}/swagger`);
 

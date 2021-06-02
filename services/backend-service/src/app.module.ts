@@ -4,6 +4,7 @@ import { AuthMiddleware, JWTConfigurationProvider, TenantContextMiddleware } fro
 import { AuthModule, AuthService } from '@modules/auth';
 
 import { DatabaseModule } from './modules/database';
+import { GoogleStorageModule } from '@modules/googlestorage/googlestorage.module';
 
 @Module({
   imports: [
@@ -14,6 +15,7 @@ import { DatabaseModule } from './modules/database';
       global: true,
     },
     AuthModule,
+    GoogleStorageModule,
   ],
   providers: [AuthService],
   exports: [AuthService],
@@ -30,6 +32,20 @@ export class AppModule implements NestModule {
       })
       .forRoutes('*')
       .apply(TenantContextMiddleware)
-      .forRoutes('/auth/admin');
+      .forRoutes(
+        '/auth/admin',
+        {
+          path: '/googlestorage/filses',
+          method: RequestMethod.POST,
+        },
+        {
+          path: '/googlestorage/filses',
+          method: RequestMethod.GET,
+        },
+        {
+          path: '/googlestorage/files',
+          method: RequestMethod.DELETE,
+        },
+      );
   }
 }
