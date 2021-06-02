@@ -1,5 +1,5 @@
 import { BaseEntity } from './base';
-import { Column, Entity, OneToMany, Unique } from 'typeorm';
+import { Column, Entity, OneToOne, Unique } from 'typeorm';
 import { GoogleStorageEntity } from './googlestorage.entity';
 
 export enum UserRole {
@@ -38,6 +38,6 @@ export class UserEntity extends BaseEntity {
   })
   public role: UserRole;
 
-  @OneToMany(() => GoogleStorageEntity, (document) => document.user)
-  public documents: GoogleStorageEntity[];
+  @OneToOne(() => GoogleStorageEntity, (store) => store.user)
+  public store: GoogleStorageEntity;
 }

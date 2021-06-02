@@ -110,6 +110,11 @@
       "**/*.(t|j)s"
     ],
     "coverageDirectory": "../coverage",
+    "moduleNameMapper": {
+      "@common": "<rootDir>/common",
+      "@entities": "<rootDir>/entities",
+      "@modules/(.*)": "<rootDir>/modules/$1"
+    },
     "testEnvironment": "node"
   }
 }

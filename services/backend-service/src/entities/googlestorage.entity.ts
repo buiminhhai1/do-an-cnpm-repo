@@ -1,12 +1,20 @@
 import { BaseEntity } from '@entities';
-import { Column, Entity, ManyToOne } from 'typeorm';
+import { Column, Entity, JoinColumn, OneToMany, OneToOne } from 'typeorm';
+import { ContractEntity } from './contract.entity';
 import { UserEntity } from './user.entity';
 
 @Entity()
 export class GoogleStorageEntity extends BaseEntity {
   @Column()
-  folderId: string;
+  storeId: string;
 
-  @ManyToOne(() => UserEntity, (user) => user.documents, { eager: false, onDelete: 'CASCADE' })
+  @Column()
+  storeName: string;
+
+  @OneToMany(() => ContractEntity, (contract) => contract.store)
+  contract: ContractEntity[];
+
+  @OneToOne(() => UserEntity, (user) => user.store, { eager: false, onDelete: 'CASCADE' })
+  @JoinColumn()
   user: UserEntity;
 }

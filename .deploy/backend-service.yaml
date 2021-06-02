@@ -1,0 +1,36 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: backend-service-deployment
+  labels:
+    app: backend-service-deployment
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      component: backend-service-web
+    template:
+      metadata:
+        labels:
+          component: backend-service-web
+      spec:
+        containers:
+          - image:  ngovietduc20088/backend-service
+          name: backend-web
+          env:
+            - name:  ENVVARNAME
+              value:  ENVVARVALUE
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: backend-service-service
+spec:
+  replicas: 3
+  selector:
+    app: backend-service-deployment
+  ports:
+    - protocal: TCP
+      targetPort: 5000
+      port: 5000
