@@ -11,8 +11,9 @@ import { DEFAULT_LIMIT, DEFAULT_PAGE } from '@common';
 import { UserEntity } from '@entities';
 import { TenantAwareContext } from '@modules/database';
 import { CredentialDTO, GenericUserResponse, LoginDTO, PaginationAuthDTO } from '@modules/auth';
-import { UserRepository } from './user.repository';
 
+import { UserRepository } from './user.repository';
+import {ChangeUserInfoDTO} from './user.dto';
 @Injectable()
 export class UserService {
   constructor(
@@ -76,5 +77,15 @@ export class UserService {
 
   getUserRepo(): UserRepository {
     return this.userRepo;
+  async changeUserInfo(updatedUserInfo: ChangeUserInfoDTO):Promise<void>{
+    const user = await this.getUserById(this.context.userId);
+    // console.log(updatedUserInfo)
+    // console.log(user);
+    user.firstName = updatedUserInfo.firstName;
+    user.lastName = updatedUserInfo.lastName;
+    user.email = updatedUserInfo.email;
+    user.phoneNumber = updatedUserInfo.phoneNumber;
+    user.address = updatedUserInfo.address;
+    await this.userRepo.save(user);
   }
 }
