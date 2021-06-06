@@ -1,7 +1,7 @@
 import { Inject, Injectable, Logger } from '@nestjs/common';
 import { TypeOrmOptionsFactory } from '@nestjs/typeorm';
 
-import { databaseOptions } from '../../../common';
+import { databaseOptions } from '@common';
 import { getConnectionManager } from 'typeorm';
 import { TenantAwareContext } from '../providers';
 
