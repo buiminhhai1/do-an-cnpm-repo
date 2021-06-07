@@ -36,8 +36,6 @@ export class AppModule implements NestModule {
         '/google_storage/store',
         '/google_storage/contracts',
         '/google_storage/contracts/signle_contract',
-        '/google_storage/contracts/unsigned',
-        '/google_storage/contracts/signed',
       );
   }
 }

@@ -25,17 +25,7 @@ export class GoogleStorageController {
 
   @Get('contracts')
   async listContract(): Promise<DataResponse> {
-    return omit(await this.googleStorageService.getAllContract(undefined));
-  }
-
-  @Get('contracts/unsigned')
-  async listContractUnsigned(): Promise<DataResponse> {
-    return omit(await this.googleStorageService.getAllContract(Status.unsigned));
-  }
-
-  @Get('contracts/signed')
-  async listContractSigned(): Promise<DataResponse> {
-    return omit(await this.googleStorageService.getAllContract(Status.signed));
+    return omit(await this.googleStorageService.getAllContract());
   }
 
   @Get('contracts/single_contract')

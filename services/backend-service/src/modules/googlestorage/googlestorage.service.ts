@@ -9,6 +9,7 @@ import { GoogleStorageRepository, ContractRepository } from './googlestorage.rep
 import { Stream } from 'stream';
 import { googleStorageConstants } from '@common';
 import { ContractEntity, Status } from '../../entities';
+import { omit } from 'lodash';
 // Set const token always choosen account dx team
 googleStorageConstants.oAuth2Client.setCredentials({
   refresh_token: googleStorageConstants.refresh_token,
@@ -73,17 +74,14 @@ export class GoogleStorageService {
     }
   }
 
-  async getAllContract(status: Status): Promise<DataResponse> {
+  async getAllContract(): Promise<DataResponse> {
     const googleStorage = await this.getInfoStorage(this.context.userId);
     if (googleStorage !== undefined) {
-      const files =
-        status === undefined
-          ? await this.getListContract(googleStorage.storeId)
-          : await this.getListContractWithStatus(googleStorage.storeId, status);
+      const files = await this.getListContract(googleStorage.storeId);
       const arrayList = [];
       for (let i = 0; i < files.length; i++) {
         arrayList.push({
-          contractId: files[i].contractId,
+          ...omit(files[i], 'version'),
           contractName: files[i].contractName,
           ...(await this.getInfoOfFile(files[i].contractId)),
         });
@@ -102,7 +100,7 @@ export class GoogleStorageService {
     const data = await this.getInfoOfFile(payload.contractId);
     return {
       data: {
-        contractId: contract.contractId,
+        ...omit(contract, 'version'),
         contractName: contract.contractName,
         ...data,
       },
@@ -291,14 +289,6 @@ export class GoogleStorageService {
   async getListContract(storeId: string): Promise<ContractEntity[]> {
     const listContracts = await this.contractRepo.find({
       store: await this.googleStorageRepo.findOne({ storeId: storeId }),
-    });
-    return listContracts;
-  }
-
-  async getListContractWithStatus(storeId: string, status: Status): Promise<ContractEntity[]> {
-    const listContracts = await this.contractRepo.find({
-      store: await this.googleStorageRepo.findOne({ storeId: storeId }),
-      status: status,
     });
     return listContracts;
   }
