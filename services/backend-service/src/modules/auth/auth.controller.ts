@@ -21,6 +21,7 @@ import {
 } from './auth.dto';
 import { AuthService } from './auth.service';
 import { UserEntity } from '@entities';
+import { MailService } from './../mail/mail.service';
 
 @Controller('auth')
 @ApiTags('Credential')
@@ -28,6 +29,7 @@ export class AuthController {
   constructor(
     private readonly authService: AuthService,
     private readonly userService: UserService,
+    private readonly mailService: MailService,
   ) {}
 
   @Post('register')
@@ -41,6 +43,7 @@ export class AuthController {
     if (!credential) {
       throw new UnauthorizedException();
     }
+    await this.mailService.sendEmail(credential);
     return await this.authService.login(credential);
   }
 
