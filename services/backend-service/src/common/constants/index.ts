@@ -4,3 +4,4 @@ export * from './pagination';
 export * from './server';
 export * from './swagger';
 export * from './googlestorage';
+export * from './mail';

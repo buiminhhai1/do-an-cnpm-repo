@@ -5,6 +5,7 @@ import { AuthModule, AuthService } from '@modules/auth';
 
 import { DatabaseModule } from './modules/database';
 import { GoogleStorageModule } from '@modules/googlestorage/googlestorage.module';
+import { MailModule } from './modules/mail/mail.module';
 
 @Module({
   imports: [
@@ -16,6 +17,7 @@ import { GoogleStorageModule } from '@modules/googlestorage/googlestorage.module
     },
     AuthModule,
     GoogleStorageModule,
+    MailModule,
   ],
   providers: [AuthService],
   exports: [AuthService],
