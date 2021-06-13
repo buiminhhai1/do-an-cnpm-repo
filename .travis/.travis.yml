@@ -1,0 +1,23 @@
+# specify language
+language: node_js
+os: linux
+# specify language options
+node_js:
+- 14.9
+# configure which branches to run
+branches:
+  only:
+    - master
+    - /deploy:.*$/ # regex ok
+services:
+  - docker
+
+before_install:
+  - docker build -t ngovietduc20088/backend-service ./services/backend-service/
+
+after_success:
+  - docker build -t ngovietduc20088/backend-service ./services/backend-service/
+  # Log in to the docker CLI
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+  # Take those images and push them to docker hub
+  - docker push ngovietduc20088/backend-service
