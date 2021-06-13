@@ -48,9 +48,10 @@ export class GoogleStorageService {
     // Create stream buffer to create meta data for upload file on drive
     const googleStorage = await this.getInfoStorage(this.context.userId);
     if (googleStorage === undefined) {
-      return { data: null, message: 'the user id not exist in database' };
+      await this.createStore();
     }
-    if (!(await this.findStoreExisted(this.context.userId))) {
+    const storeExisted = await this.findStoreExisted(this.context.userId);
+    if (!storeExisted) {
       return { data: null, message: 'the store not found!' };
     }
     const response = await this.createFile(payload.files[0], googleStorage.storeId);

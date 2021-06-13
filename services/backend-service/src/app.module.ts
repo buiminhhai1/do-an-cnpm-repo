@@ -33,7 +33,6 @@ export class AppModule implements NestModule {
       .apply(TenantContextMiddleware)
       .forRoutes(
         '/auth/admin',
-        '/google_storage/store',
         '/google_storage/contracts',
         '/google_storage/contracts/signle_contract',
       );
