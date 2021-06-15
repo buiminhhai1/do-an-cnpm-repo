@@ -1,6 +1,6 @@
 import { MigrationInterface, QueryRunner } from 'typeorm';
 import * as bcrypt from 'bcrypt';
-import { UserEntity } from '@entities';
+import { UserEntity, UserRole } from '@entities';
 
 export class userMigrations1618306373064 implements MigrationInterface {
   public async up(queryRunner: QueryRunner): Promise<void> {
@@ -12,6 +12,7 @@ export class userMigrations1618306373064 implements MigrationInterface {
       username: 'admin',
       password,
       email: 'admin@admin.com',
+      role: UserRole.admin,
     });
   }
 

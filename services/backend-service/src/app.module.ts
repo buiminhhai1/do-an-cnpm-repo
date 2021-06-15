@@ -9,7 +9,6 @@ import { GoogleStorageModule } from '@modules/googlestorage/googlestorage.module
 @Module({
   imports: [
     DatabaseModule.register(),
-
     {
       ...JwtModule.registerAsync(JWTConfigurationProvider),
       global: true,
@@ -34,18 +33,8 @@ export class AppModule implements NestModule {
       .apply(TenantContextMiddleware)
       .forRoutes(
         '/auth/admin',
-        {
-          path: '/googlestorage/filses',
-          method: RequestMethod.POST,
-        },
-        {
-          path: '/googlestorage/filses',
-          method: RequestMethod.GET,
-        },
-        {
-          path: '/googlestorage/files',
-          method: RequestMethod.DELETE,
-        },
+        '/google_storage/contracts',
+        '/google_storage/contracts/signle_contract',
       );
   }
 }
