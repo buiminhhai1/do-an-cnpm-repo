@@ -3,30 +3,32 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { TenantAwareContext } from '@modules/database';
 import { Inject, Injectable } from '@nestjs/common';
-import { google } from 'googleapis';
+import { drive_v3, google } from 'googleapis';
 import { DeleteDTO, FileDetailDTO, UploadDTO, DataResponse } from './googlestorage.dto';
 import { GoogleStorageRepository, ContractRepository } from './googlestorage.repository';
 import { Stream } from 'stream';
 import { googleStorageConstants } from '@common';
 import { ContractEntity, Status } from '../../entities';
-import { omit } from 'lodash';
-// Set const token always choosen account dx team
-googleStorageConstants.oAuth2Client.setCredentials({
-  refresh_token: googleStorageConstants.refresh_token,
-});
-// Config drive function
-const drive = google.drive({
-  version: 'v3',
-  auth: googleStorageConstants.oAuth2Client,
-});
+import { omit, update } from 'lodash';
 
 @Injectable()
 export class GoogleStorageService {
+  private drive;
   constructor(
     private readonly googleStorageRepo: GoogleStorageRepository,
     private readonly contractRepo: ContractRepository,
     @Inject(TenantAwareContext) private readonly context: TenantAwareContext,
-  ) {}
+  ) {
+    this.drive = this.createDriveClient();
+  }
+  createDriveClient() {
+    const client = googleStorageConstants.oAuth2Client;
+    client.setCredentials({ refresh_token: googleStorageConstants.refresh_token });
+    return google.drive({
+      version: 'v3',
+      auth: client,
+    });
+  }
   // MARK:- Create folder
   async createStore(): Promise<DataResponse> {
     const isFileExist = await this.findStoreExisted(this.context.userId);
@@ -111,13 +113,36 @@ export class GoogleStorageService {
   async deleteContract(_query: Partial<DeleteDTO>): Promise<DataResponse> {
     await this.deleteContractDBUnsigned(_query.contractId);
     if (await this.findContractExisted(_query.contractId, this.context.userId)) {
-      await drive.files.delete({
+      await this.drive.files.delete({
         fileId: _query.contractId,
       });
     } else {
       return { data: null, message: 'the contract not found' };
     }
     return { data: {} };
+  }
+
+  async updateContract(
+    contractFile: Partial<UploadDTO>,
+    payload: Partial<FileDetailDTO>,
+  ): Promise<DataResponse> {
+    const contract = await this.contractRepo.findOne({
+      where: {
+        contractId: payload.contractId,
+      },
+      relations: ['store'],
+    });
+    if (contract !== undefined && contract.status !== Status.signed) {
+      const response = await this.updateFile(contractFile.files[0], payload.contractId, [
+        contract.store.storeId,
+      ]);
+      contract.contractId = response.data.id;
+      contract.contractName = contractFile.files[0].originalname;
+
+      await this.contractRepo.update({ contractId: payload.contractId }, contract);
+      return { data: {}, message: `Course with ID ${payload.contractId} updated success!` };
+    }
+    return { data: null, message: 'Can not updated!' };
   }
 
   // MARK:- OTHER FUNCTION
@@ -167,7 +192,7 @@ export class GoogleStorageService {
       mimeType: file.mimetype,
       body: bufferStream,
     };
-    return await drive.files.create({
+    return await this.drive.files.create({
       requestBody: fileMetaData,
       media: media,
     });
@@ -179,12 +204,12 @@ export class GoogleStorageService {
       parents: rootFolderId ? [rootFolderId] : null,
       mimeType: 'application/vnd.google-apps.folder',
     };
-    return await drive.files.create({
+    return await this.drive.files.create({
       requestBody: fileMetaData,
     });
   }
 
-  async updataFile(file: any, fileId: string) {
+  async updateFile(file: any, fileId: string, parents?: string[]): Promise<any> {
     const bufferStream = new Stream.PassThrough();
     bufferStream.end(file.buffer);
     const fileMetaData = {
@@ -194,11 +219,20 @@ export class GoogleStorageService {
       mimeType: file.mimetype,
       body: bufferStream,
     };
-    drive.files.update({
+    return await this.drive.files.update({
       fileId: fileId,
+      addParents: parents !== null ? this.convertArrayToString(parents) : null,
       requestBody: fileMetaData,
       media: media,
     });
+  }
+
+  convertArrayToString(arr: string[]): string {
+    let str = '';
+    arr.forEach((element) => {
+      str += element + ', ';
+    });
+    return str;
   }
 
   async updateFolder(folderName: string, FolderId: string) {
@@ -206,7 +240,7 @@ export class GoogleStorageService {
       name: folderName,
       mimeType: 'application/vnd.google-apps.folder',
     };
-    drive.files.update({
+    this.drive.files.update({
       fileId: FolderId,
       requestBody: fileMetaData,
     });
@@ -220,7 +254,7 @@ export class GoogleStorageService {
       };
     }
     // waiting for access permission
-    await drive.permissions.create({
+    await this.drive.permissions.create({
       fileId: fileId,
       requestBody: {
         role: 'writer',
@@ -228,7 +262,7 @@ export class GoogleStorageService {
       },
     });
     // get public link and download link
-    const result = await drive.files.get({
+    const result = await this.drive.files.get({
       fileId: fileId,
       fields: 'webViewLink, webContentLink',
     });
@@ -248,7 +282,7 @@ export class GoogleStorageService {
   async findStoreExisted(userId: string): Promise<boolean> {
     const googleStorage = await this.getInfoStorage(userId);
     if (googleStorage !== undefined) {
-      const folders = await drive.files.list({
+      const folders = await this.drive.files.list({
         q: `mimeType = 'application/vnd.google-apps.folder' and name = '${userId}' and trashed=false`,
       });
       if (folders.data.files.length > 0) {
@@ -263,7 +297,7 @@ export class GoogleStorageService {
 
   async findContractExisted(contractId: string, userId: string): Promise<boolean> {
     const googleStorage = await this.getInfoStorage(userId);
-    const contractsOnDrive = await drive.files.list({
+    const contractsOnDrive = await this.drive.files.list({
       q: `mimeType = 'application/pdf' and '${googleStorage.storeId}' in parents and trashed=false`,
     });
     if (contractsOnDrive.status === 200) {
@@ -292,5 +326,34 @@ export class GoogleStorageService {
       store: await this.googleStorageRepo.findOne({ storeId: storeId }),
     });
     return listContracts;
+  }
+
+  async uploadFile(file: Buffer, name: string, mimeType: any, rootFolderId: string): Promise<any> {
+    const bufferStream = new Stream.PassThrough();
+    bufferStream.end(file);
+    const fileMetaData = {
+      name: name,
+      parents: [rootFolderId],
+    };
+    const media = {
+      mimeType: mimeType,
+      body: bufferStream,
+    };
+    return await this.drive.files.create({
+      requestBody: fileMetaData,
+      media: media,
+    });
+  }
+
+  getStoreRepo(): GoogleStorageRepository {
+    return this.googleStorageRepo;
+  }
+
+  getContractRepo(): ContractRepository {
+    return this.contractRepo;
+  }
+
+  getDrive(): drive_v3.Drive {
+    return this.drive;
   }
 }

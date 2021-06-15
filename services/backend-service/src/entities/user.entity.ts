@@ -1,6 +1,7 @@
 import { BaseEntity } from './base';
 import { Column, Entity, OneToOne, Unique } from 'typeorm';
 import { GoogleStorageEntity } from './googlestorage.entity';
+import { SignatureEntity } from './signature.entity';
 
 export enum UserRole {
   admin = 'admin',
@@ -40,4 +41,7 @@ export class UserEntity extends BaseEntity {
 
   @OneToOne(() => GoogleStorageEntity, (store) => store.user)
   public store: GoogleStorageEntity;
+
+  @OneToOne(() => SignatureEntity, (sign) => sign.user)
+  public sign: SignatureEntity;
 }

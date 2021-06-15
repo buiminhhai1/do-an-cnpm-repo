@@ -5,6 +5,7 @@ import { AuthModule, AuthService } from '@modules/auth';
 
 import { DatabaseModule } from './modules/database';
 import { GoogleStorageModule } from '@modules/googlestorage/googlestorage.module';
+import { SignatureModule } from '@modules/signature/signature.module';
 
 @Module({
   imports: [
@@ -15,6 +16,7 @@ import { GoogleStorageModule } from '@modules/googlestorage/googlestorage.module
     },
     AuthModule,
     GoogleStorageModule,
+    SignatureModule,
   ],
   providers: [AuthService],
   exports: [AuthService],
@@ -35,6 +37,8 @@ export class AppModule implements NestModule {
         '/auth/admin',
         '/google_storage/contracts',
         '/google_storage/contracts/signle_contract',
+        './signatures',
+        './signatures/sign',
       );
   }
 }
