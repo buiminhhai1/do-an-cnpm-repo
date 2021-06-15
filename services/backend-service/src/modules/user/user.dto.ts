@@ -21,4 +21,20 @@ export class ChangeUserInfoDTO {
     @IsString()
     address: string;
 }
+
+// MARK:- Upload image
+/**
+ * Body: payload
+ */
+ export class UploadProfileImageDTO {
+    @ApiProperty()
+    // @IsString()
+    public imageId: any;
+  }
   
+
+  export class imageDTO {
+    @ApiProperty()
+    @IsString()
+    public imageId: string;
+  }

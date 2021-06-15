@@ -13,7 +13,7 @@ import { TenantAwareContext } from '@modules/database';
 import { CredentialDTO, GenericUserResponse, LoginDTO, PaginationAuthDTO } from '@modules/auth';
 
 import { UserRepository } from './user.repository';
-import {ChangeUserInfoDTO} from './user.dto';
+import {ChangeUserInfoDTO,UploadProfileImageDTO} from './user.dto';
 @Injectable()
 export class UserService {
   constructor(
@@ -83,6 +83,15 @@ export class UserService {
     user.email = updatedUserInfo.email;
     user.phoneNumber = updatedUserInfo.phoneNumber;
     user.address = updatedUserInfo.address;
+    await this.userRepo.save(user);
+  }
+
+  async changeProfileImage(imageId: string):Promise<void>{
+    const user = await this.getUserById(this.context.userId);
+    // console.log(updatedUserInfo)
+    // console.log(user);
+    user.imageId = imageId;
+
     await this.userRepo.save(user);
   }
 }

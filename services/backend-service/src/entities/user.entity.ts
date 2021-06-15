@@ -31,6 +31,9 @@ export class UserEntity extends BaseEntity {
   @Column({ nullable: true })
   public address: string;
 
+  @Column({ nullable: true })
+  public imageId: string;
+
   @Column({
     type: 'enum',
     enum: UserRole,
