@@ -1,9 +1,19 @@
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
-import { Body, Controller, Get, Post, Query, Req, UseInterceptors } from '@nestjs/common';
-import { FilesInterceptor } from '@nestjs/platform-express';
+import {
+  Body,
+  Controller,
+  Get,
+  Post,
+  Query,
+  Req,
+  Res,
+  UploadedFiles,
+  UseInterceptors,
+} from '@nestjs/common';
+import { FileFieldsInterceptor } from '@nestjs/platform-express';
 import { ApiTags } from '@nestjs/swagger';
-import { SignDTO, VerifyDTO, ContractFileDTO } from './signature.dto';
+import { SignDTO, DataResponse } from './signature.dto';
 import { SignatureService } from './signature.service';
 
 @Controller('signatures')
@@ -16,17 +26,16 @@ export class SignatureController {
     await this.signatureService.createSignature();
   }
 
-  @Post('sign')
-  async signingContract(@Body() payload: SignDTO): Promise<boolean> {
+  @Post('signing')
+  async signingContract(@Query() payload: SignDTO): Promise<boolean> {
     return await this.signatureService.signing(payload);
   }
 
-  @Post('verify')
-  @UseInterceptors(FilesInterceptor('contract'))
-  async verifyContract(
-    @Req() contractFile: ContractFileDTO,
-    @Body() payload: VerifyDTO,
-  ): Promise<boolean> {
-    return await this.signatureService.verify(contractFile, payload);
-  }
+  // @Post('verify')
+  // verifyContract(playload: SignDTO): string {
+  //   return this.signatureService.RSASign(
+  //     playload.files.privateKey[0].buffer.toString('utf8'),
+  //     playload.files.contract[0].buffer,
+  //   );
+  // }
 }

@@ -15,6 +15,7 @@ import { omit } from 'lodash';
 import { GoogleStorageService } from './googlestorage.service';
 import { DeleteDTO, FileDetailDTO, UploadDTO, DataResponse } from './googlestorage.dto';
 import { FilesInterceptor } from '@nestjs/platform-express';
+import { Payload } from '@nestjs/microservices';
 
 @Controller('google_storage')
 @ApiTags('GoogleStorage')

@@ -12,7 +12,7 @@ export class GoogleStorageEntity extends BaseEntity {
   storeName: string;
 
   @OneToMany(() => ContractEntity, (contract) => contract.store)
-  contracts: ContractEntity[];
+  contract: ContractEntity[];
 
   @OneToOne(() => UserEntity, (user) => user.store, { eager: false, onDelete: 'CASCADE' })
   @JoinColumn()

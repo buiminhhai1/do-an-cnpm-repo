@@ -35,13 +35,10 @@ export class AppModule implements NestModule {
       .apply(TenantContextMiddleware)
       .forRoutes(
         '/auth/admin',
-        // Store and contract
         '/google_storage/contracts',
         '/google_storage/contracts/signle_contract',
-        // Signature
         './signatures',
         './signatures/sign',
-        './signatures/verify',
       );
   }
 }
