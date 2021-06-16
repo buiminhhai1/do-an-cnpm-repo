@@ -14,6 +14,7 @@ export class MailService {
       context: {
         name: payload.nameReciever,
         url: payload.link,
+        sign: payload.documentSign,
       },
     });
   }
