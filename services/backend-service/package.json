@@ -12,7 +12,7 @@
   },
   "scripts": {
     "prebuild": "rimraf dist",
-    "build": "tsc -b tsconfig.json",
+    "build": "tsc -b tsconfig.json && yarn mail:build",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
     "dev": "dotenv -- ts-node-dev -r tsconfig-paths/register ./src/main.ts",
     "start:dev": "dotenv -- ts-node-dev -r tsconfig-paths/register ./src/main.ts",
@@ -23,10 +23,13 @@
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
     "test:e2e": "jest --config ./test/jest-e2e.json",
     "lint": "eslint ./src --ext .js,.ts",
-    "mi:create": "yarn typeorm migration:create --dir ./src/migrations -n"
+    "mi:create": "yarn typeorm migration:create --dir ./src/migrations -n",
+    "mail:build": "cp -r ./src/mail/templates ./dist/src/mail "
   },
   "dependencies": {
+    "@nestjs-modules/mailer": "1.6.0",
     "@nestjs/common": "7.6.15",
+    "@nestjs/config": "^0.6.3",
     "@nestjs/core": "7.6.15",
     "@nestjs/jwt": "7.2.0",
     "@nestjs/microservices": "7.6.15",
@@ -52,12 +55,14 @@
     "faker": "5.5.3",
     "global": "4.4.0",
     "googleapis": "71.0.0",
+    "handlebars": "4.7.7",
     "helmet": "4.4.1",
     "jwt-decode": "3.1.2",
     "lodash": "4.17.21",
     "module-alias": "2.2.2",
     "multer": "1.4.2",
     "nanoid": "3.1.22",
+    "nodemailer": "6.6.1",
     "passport-jwt": "4.0.0",
     "passport-local": "1.0.0",
     "path": "0.12.7",

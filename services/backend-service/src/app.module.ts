@@ -5,6 +5,8 @@ import { AuthModule, AuthService } from '@modules/auth';
 
 import { DatabaseModule } from './modules/database';
 import { GoogleStorageModule } from '@modules/googlestorage/googlestorage.module';
+import { MailModule } from './mail/mail.module';
+import { MailService } from './mail/mail.service';
 
 @Module({
   imports: [
@@ -15,9 +17,10 @@ import { GoogleStorageModule } from '@modules/googlestorage/googlestorage.module
     },
     AuthModule,
     GoogleStorageModule,
+    MailModule,
   ],
-  providers: [AuthService],
-  exports: [AuthService],
+  providers: [AuthService, MailService],
+  exports: [AuthService, MailService],
 })
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer): MiddlewareConsumer {
@@ -25,7 +28,7 @@ export class AppModule implements NestModule {
       .apply(TenantContextMiddleware)
       .forRoutes('*')
       .apply(AuthMiddleware)
-      .exclude('/swagger', '/health', '/auth/register', '/auth/login', {
+      .exclude('/swagger', '/health', '/auth/register', '/auth/login', '/mail', {
         path: '/authors',
         method: RequestMethod.GET,
       })
