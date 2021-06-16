@@ -10,5 +10,6 @@ import { GoogleStorageService } from './googlestorage.service';
   imports: [TypeOrmModule.forFeature([...scanEntities(repositories)]), DatabaseModule],
   providers: [GoogleStorageService],
   controllers: [...scanComponents(controllers)],
+  exports: [GoogleStorageService],
 })
 export class GoogleStorageModule {}

@@ -1,6 +1,7 @@
 import { BaseEntity } from './base';
-import { Column, Entity, ManyToOne } from 'typeorm';
+import { Column, Entity, ManyToOne, OneToOne } from 'typeorm';
 import { GoogleStorageEntity } from './googlestorage.entity';
+import { SignContractEntity } from './signcontract.entity';
 
 export enum Status {
   signed = 'signed',
@@ -23,9 +24,12 @@ export class ContractEntity extends BaseEntity {
   @Column()
   public status: Status;
 
-  @ManyToOne(() => GoogleStorageEntity, (store) => store.contract, {
+  @ManyToOne(() => GoogleStorageEntity, (store) => store.contracts, {
     eager: false,
     onDelete: 'CASCADE',
   })
   public store: GoogleStorageEntity;
+
+  @OneToOne(() => SignContractEntity, (signContract) => signContract.contract)
+  public signContract: SignContractEntity;
 }

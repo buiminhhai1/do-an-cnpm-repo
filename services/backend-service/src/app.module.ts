@@ -7,6 +7,7 @@ import { DatabaseModule } from './modules/database';
 import { GoogleStorageModule } from '@modules/googlestorage/googlestorage.module';
 import { MailModule } from './mail/mail.module';
 import { MailService } from './mail/mail.service';
+import { SignatureModule } from '@modules/signature/signature.module';
 
 @Module({
   imports: [
@@ -18,6 +19,7 @@ import { MailService } from './mail/mail.service';
     AuthModule,
     GoogleStorageModule,
     MailModule,
+    SignatureModule,
   ],
   providers: [AuthService, MailService],
   exports: [AuthService, MailService],
@@ -36,11 +38,13 @@ export class AppModule implements NestModule {
       .apply(TenantContextMiddleware)
       .forRoutes(
         '/auth/admin',
-        '/google_storage/store',
+        // Store and contract
         '/google_storage/contracts',
         '/google_storage/contracts/signle_contract',
-        '/google_storage/contracts/unsigned',
-        '/google_storage/contracts/signed',
+        // Signature
+        './signatures',
+        './signatures/sign',
+        './signatures/verify',
       );
   }
 }
