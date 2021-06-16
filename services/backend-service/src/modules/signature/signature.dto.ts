@@ -2,16 +2,26 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsString } from 'class-validator';
 
-export class GenerateKey {
-  @ApiProperty()
-  // @IsString()
-  public response: any;
-}
-
 export class SignDTO {
   @ApiProperty()
-  // @IsString()
+  @IsString()
   public contractId: string;
+}
+
+export class VerifyDTO {
+  @ApiProperty()
+  @IsString()
+  public signature: string;
+
+  @ApiProperty()
+  @IsString()
+  public email: string;
+}
+
+export class ContractFileDTO {
+  @ApiProperty()
+  @IsString()
+  public files: any;
 }
 
 /**

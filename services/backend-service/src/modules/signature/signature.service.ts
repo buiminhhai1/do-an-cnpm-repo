@@ -1,10 +1,12 @@
+/* eslint-disable @typescript-eslint/explicit-function-return-type */
+/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 import { Inject, Injectable } from '@nestjs/common';
 import { SignatureRepository, SignContractRepository } from './signature.repository';
 import * as crypto from 'crypto';
 import { TenantAwareContext } from '@modules/database';
 import { Readable } from 'stream';
 import { UserService } from '@modules/user';
-import { SignDTO } from './signature.dto';
+import { ContractFileDTO, DataResponse, SignDTO, VerifyDTO } from './signature.dto';
 import { GoogleStorageService } from '../googlestorage';
 import { Stream } from 'stream';
 import { Status } from '../../entities';
@@ -48,14 +50,14 @@ export class SignatureService {
           Buffer.from(privateKey),
           'privateKey',
           'application/pem',
-          store.storeId,
+          [store.storeId],
         );
 
         const responsePublicKey = await this.storeSevice.uploadFile(
           Buffer.from(publicKey),
           'publicKey',
           'application/pem',
-          store.storeId,
+          [store.storeId],
         );
 
         await this.signatureRepo.save(
@@ -69,7 +71,7 @@ export class SignatureService {
     }
   }
 
-  async signing(payload: Partial<SignDTO>): Promise<boolean> {
+  async signing(payload: Partial<SignDTO>): Promise<DataResponse> {
     const user = await this.userSevice.getUserRepo().findOne({
       where: {
         id: this.context.userId,
@@ -79,8 +81,17 @@ export class SignatureService {
     const contractInfo = await this.storeSevice.getContractRepo().findOne({
       contractId: payload.contractId,
     });
+    if (contractInfo === undefined) {
+      return {
+        data: { status: false },
+        message: `The contract ID ${payload.contractId} not existed!`,
+      };
+    }
     if (contractInfo.status === Status.signed) {
-      return false;
+      return {
+        data: { status: false },
+        message: `Signing with the contract ID ${payload.contractId} is fail!`,
+      };
     }
     const privateKey = await this.getBufferFile(user.sign.privateKeyId);
     const contract = await this.getBufferFile(payload.contractId);
@@ -88,27 +99,40 @@ export class SignatureService {
     await this.signContractRepo.save(
       this.signContractRepo.create({
         signature: sign,
-        contract: { contractId: payload.contractId },
+        contract: { id: contractInfo.id },
       }),
     );
     contractInfo.status = Status.signed;
     await this.storeSevice
       .getContractRepo()
       .update({ contractId: payload.contractId }, contractInfo);
-    return true;
+    return {
+      data: { status: true },
+      message: `Signing with the contract ID ${payload.contractId} is success!`,
+    };
   }
 
-  // async verify() {
-  //   const user = await this.userSevice.getUserRepo().findOne({
-  //     where: {
-  //       id: this.context.userId,
-  //     },
-  //     relations: ['sign'],
-  //   });
-  //   const publicKey = await this.getBufferFile(user.sign.publicKeyId);
-  //   const verify = this.RSAVerify(publicKey.toString('utf8'), sign, contract);
-  //   console.log(verify);
-  // }
+  async verify(contractFile: ContractFileDTO, payload: VerifyDTO): Promise<DataResponse> {
+    const user = await this.userSevice.getUserRepo().findOne({
+      where: {
+        email: payload.email,
+      },
+      relations: ['sign'],
+    });
+    if (user === undefined) {
+      return { data: { status: false }, message: `Email ${payload.email} not existed!` };
+    }
+    const publicKey = await this.getBufferFile(user.sign.publicKeyId);
+    const verify = this.RSAVerify(
+      publicKey.toString('utf8'),
+      payload.signature,
+      contractFile.files[0].buffer,
+    );
+    return {
+      data: { status: verify },
+      message: verify === true ? 'The signing is true!' : ' The signing or contract is false!',
+    };
+  }
 
   RSASign(privateKey: string, data: Buffer): string {
     const sign = crypto.createSign('RSA-SHA256');

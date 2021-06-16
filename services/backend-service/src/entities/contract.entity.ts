@@ -24,7 +24,7 @@ export class ContractEntity extends BaseEntity {
   @Column()
   public status: Status;
 
-  @ManyToOne(() => GoogleStorageEntity, (store) => store.contract, {
+  @ManyToOne(() => GoogleStorageEntity, (store) => store.contracts, {
     eager: false,
     onDelete: 'CASCADE',
   })

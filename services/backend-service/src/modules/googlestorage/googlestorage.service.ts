@@ -8,8 +8,9 @@ import { DeleteDTO, FileDetailDTO, UploadDTO, DataResponse } from './googlestora
 import { GoogleStorageRepository, ContractRepository } from './googlestorage.repository';
 import { Stream } from 'stream';
 import { googleStorageConstants } from '@common';
-import { ContractEntity, Status } from '../../entities';
-import { omit, update } from 'lodash';
+import { ContractEntity, GoogleStorageEntity, Status } from '@entities';
+import { omit } from 'lodash';
+import { UpdateResult } from 'typeorm';
 
 @Injectable()
 export class GoogleStorageService {
@@ -30,33 +31,34 @@ export class GoogleStorageService {
     });
   }
   // MARK:- Create folder
-  async createStore(): Promise<DataResponse> {
+  async createStore(): Promise<GoogleStorageEntity> {
     const isFileExist = await this.findStoreExisted(this.context.userId);
     // Check folder name is exist
     if (!isFileExist) {
       const response = await this.createFolder(this.context.userId, null);
-      const googleStorage = await this.getInfoStorage(this.context.userId);
+      let googleStorage = await this.getInfoStorage(this.context.userId);
       if (googleStorage === undefined) {
-        return { data: await this.saveStoreDB(response.data.id) };
+        const newStore = await this.saveStoreDB(response.data.id);
+        return newStore;
       } else {
-        return { data: await this.updateStoreBD(response.data.id, googleStorage) };
+        await this.updateStoreBD(response.data.id, googleStorage);
+        googleStorage = await this.getInfoStorage(this.context.userId);
+        return googleStorage;
       }
-    } else {
-      return { data: null, message: 'the folder has existed' };
     }
   }
   // MARK:- Create file
   async uploadContract(payload: Partial<UploadDTO>): Promise<DataResponse> {
     // Create stream buffer to create meta data for upload file on drive
-    const googleStorage = await this.getInfoStorage(this.context.userId);
+    let googleStorage = await this.getInfoStorage(this.context.userId);
     if (googleStorage === undefined) {
-      await this.createStore();
+      googleStorage = await this.createStore();
     }
     const storeExisted = await this.findStoreExisted(this.context.userId);
     if (!storeExisted) {
-      return { data: null, message: 'the store not found!' };
+      return { data: null, message: 'The store not found!' };
     }
-    const response = await this.createFile(payload.files[0], googleStorage.storeId);
+    const response = await this.createFile(payload.files[0], [googleStorage.storeId]);
     if (response.data !== null) {
       await this.saveContractDB(
         {
@@ -73,32 +75,31 @@ export class GoogleStorageService {
         },
       };
     } else {
-      return { data: null, message: 'upload this file not success!' };
+      return { data: null, message: 'Upload this file not success!' };
     }
   }
 
   async getAllContract(): Promise<DataResponse> {
-    const googleStorage = await this.getInfoStorage(this.context.userId);
-    if (googleStorage !== undefined) {
-      const files = await this.getListContract(googleStorage.storeId);
+    const listContract = await this.getListContract(this.context.userId);
+    if (listContract === null) {
+      return { data: null, message: 'The user id not exist in database!' };
+    } else {
       const arrayList = [];
-      for (let i = 0; i < files.length; i++) {
+      for (let i = 0; i < listContract.length; i++) {
         arrayList.push({
-          ...omit(files[i], 'version'),
-          contractName: files[i].contractName,
-          ...(await this.getInfoOfFile(files[i].contractId)),
+          ...omit(listContract[i], 'version'),
+          contractName: listContract[i].contractName,
+          ...(await this.getInfoOfFile(listContract[i].contractId)),
         });
       }
-      return { data: arrayList };
-    } else {
-      return { data: null, message: 'the user id not exist in database' };
+      return { data: arrayList, message: 'Get list contract success!' };
     }
   }
 
   async getDetailContract(payload: Partial<FileDetailDTO>): Promise<DataResponse> {
     const contract = await this.contractRepo.findOne({ contractId: payload.contractId });
     if (contract === undefined) {
-      return { data: null, message: 'the contract id not exist in database' };
+      return { data: null, message: 'The contract id not exist in database!' };
     }
     const data = await this.getInfoOfFile(payload.contractId);
     return {
@@ -112,14 +113,21 @@ export class GoogleStorageService {
 
   async deleteContract(_query: Partial<DeleteDTO>): Promise<DataResponse> {
     await this.deleteContractDBUnsigned(_query.contractId);
-    if (await this.findContractExisted(_query.contractId, this.context.userId)) {
+    const isContractExisted = await this.findContractExisted(
+      _query.contractId,
+      this.context.userId,
+    );
+    if (isContractExisted !== null && isContractExisted) {
       await this.drive.files.delete({
         fileId: _query.contractId,
       });
+      return {
+        data: {},
+        message: `The contract with ID ${_query.contractId} has been deleted success!`,
+      };
     } else {
-      return { data: null, message: 'the contract not found' };
+      return { data: null, message: 'The contract not found' };
     }
-    return { data: {} };
   }
 
   async updateContract(
@@ -140,13 +148,13 @@ export class GoogleStorageService {
       contract.contractName = contractFile.files[0].originalname;
 
       await this.contractRepo.update({ contractId: payload.contractId }, contract);
-      return { data: {}, message: `Course with ID ${payload.contractId} updated success!` };
+      return { data: {}, message: `Contract with ID ${payload.contractId} updated success!` };
     }
-    return { data: null, message: 'Can not updated!' };
+    return { data: null, message: `Can not updated contract with ID ${payload.contractId}!` };
   }
 
   // MARK:- OTHER FUNCTION
-  async saveStoreDB(storeId: string): Promise<any> {
+  async saveStoreDB(storeId: string): Promise<GoogleStorageEntity> {
     return await this.googleStorageRepo.save(
       this.googleStorageRepo.create({
         storeId: storeId,
@@ -156,7 +164,7 @@ export class GoogleStorageService {
     );
   }
 
-  async updateStoreBD(storeId: string, googleStorage: any): Promise<any> {
+  async updateStoreBD(storeId: string, googleStorage: any): Promise<UpdateResult> {
     googleStorage.storeId = storeId;
     return await this.googleStorageRepo.update(googleStorage.id, googleStorage);
   }
@@ -181,12 +189,12 @@ export class GoogleStorageService {
     }
   }
 
-  async createFile(file: any, rootFolderId: string): Promise<any> {
+  async createFile(file: any, parents?: string[]): Promise<any> {
     const bufferStream = new Stream.PassThrough();
     bufferStream.end(file.buffer);
     const fileMetaData = {
       name: file.originalname,
-      parents: [rootFolderId],
+      parents: parents,
     };
     const media = {
       mimeType: file.mimetype,
@@ -198,10 +206,10 @@ export class GoogleStorageService {
     });
   }
 
-  async createFolder(folderName: string, rootFolderId?: string): Promise<any> {
+  async createFolder(folderName: string, parents?: string[]): Promise<any> {
     const fileMetaData = {
       name: folderName,
-      parents: rootFolderId ? [rootFolderId] : null,
+      parents: parents,
       mimeType: 'application/vnd.google-apps.folder',
     };
     return await this.drive.files.create({
@@ -235,19 +243,9 @@ export class GoogleStorageService {
     return str;
   }
 
-  async updateFolder(folderName: string, FolderId: string) {
-    const fileMetaData = {
-      name: folderName,
-      mimeType: 'application/vnd.google-apps.folder',
-    };
-    this.drive.files.update({
-      fileId: FolderId,
-      requestBody: fileMetaData,
-    });
-  }
-
   async getInfoOfFile(fileId: string): Promise<{ publicLink: string; download: string }> {
-    if (!(await this.findContractExisted(fileId, this.context.userId))) {
+    const isContractExisted = await this.findContractExisted(fileId, this.context.userId);
+    if (isContractExisted === null || !isContractExisted) {
       return {
         publicLink: '',
         download: '',
@@ -281,59 +279,53 @@ export class GoogleStorageService {
 
   async findStoreExisted(userId: string): Promise<boolean> {
     const googleStorage = await this.getInfoStorage(userId);
-    if (googleStorage !== undefined) {
-      const folders = await this.drive.files.list({
-        q: `mimeType = 'application/vnd.google-apps.folder' and name = '${userId}' and trashed=false`,
-      });
-      if (folders.data.files.length > 0) {
-        return true;
-      } else {
-        return false;
-      }
+    if (googleStorage !== null) {
+      return true;
     } else {
       return false;
     }
   }
 
-  async findContractExisted(contractId: string, userId: string): Promise<boolean> {
+  async findContractExisted(contractId: string, userId: string): Promise<boolean | null> {
     const googleStorage = await this.getInfoStorage(userId);
-    const contractsOnDrive = await this.drive.files.list({
-      q: `mimeType = 'application/pdf' and '${googleStorage.storeId}' in parents and trashed=false`,
-    });
-    if (contractsOnDrive.status === 200) {
-      if (contractsOnDrive.data.files.length > 0) {
-        for (let i = 0; i < contractsOnDrive.data.files.length; i++) {
-          if (contractsOnDrive.data.files[i].id === contractId) {
-            return true;
-          }
-        }
-        return false;
-      } else {
-        return false;
-      }
-    } else {
-      return false;
+    if (googleStorage === null) {
+      return null;
     }
+    googleStorage.contracts.filter((contract) => {
+      if (contract.contractId === contractId) {
+        return true;
+      }
+    });
+    return false;
   }
 
-  async getInfoStorage(userId: string): Promise<any> {
-    const googleStorage = await this.googleStorageRepo.findOne({ storeName: userId });
+  async getInfoStorage(userId: string): Promise<GoogleStorageEntity | null> {
+    const googleStorage = await this.googleStorageRepo.findOne({
+      where: {
+        storeName: userId,
+      },
+      relations: ['contracts'],
+    });
+    if (googleStorage === undefined) {
+      return null;
+    }
     return googleStorage;
   }
 
-  async getListContract(storeId: string): Promise<ContractEntity[]> {
-    const listContracts = await this.contractRepo.find({
-      store: await this.googleStorageRepo.findOne({ storeId: storeId }),
-    });
-    return listContracts;
+  async getListContract(userId: string): Promise<ContractEntity[] | null> {
+    const googleStorage = await this.getInfoStorage(userId);
+    if (googleStorage === null) {
+      return null;
+    }
+    return googleStorage.contracts;
   }
 
-  async uploadFile(file: Buffer, name: string, mimeType: any, rootFolderId: string): Promise<any> {
+  async uploadFile(file: Buffer, name: string, mimeType: any, parents: string[]): Promise<any> {
     const bufferStream = new Stream.PassThrough();
     bufferStream.end(file);
     const fileMetaData = {
       name: name,
-      parents: [rootFolderId],
+      parents: parents,
     };
     const media = {
       mimeType: mimeType,
