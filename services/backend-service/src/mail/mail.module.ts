@@ -4,7 +4,6 @@ import { HandlebarsAdapter } from '@nestjs-modules/mailer/dist/adapters/handleba
 import { MAIL_FROM, MAIL_HOST, MAIL_PASSWORD, MAIL_USER } from '@common';
 import { MailService } from './mail.service';
 import { join } from 'path';
-import { MailController } from './mail.controller';
 
 @Module({
   imports: [
@@ -33,6 +32,5 @@ import { MailController } from './mail.controller';
   ],
   providers: [MailService],
   exports: [MailService],
-  controllers: [MailController],
 })
 export class MailModule {}

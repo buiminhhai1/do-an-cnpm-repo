@@ -1,19 +1,19 @@
 import { MailerService } from '@nestjs-modules/mailer';
 import { Injectable } from '@nestjs/common';
+import { MailPayloadDto } from './mail.dto';
 
 @Injectable()
 export class MailService {
   constructor(private mailerService: MailerService) {}
 
-  async sendUserConfiguration(token: string): Promise<void> {
-    const url = `http://localhost:8000/auth/confirm?token=${token}`;
+  async sendLink(payload: MailPayloadDto): Promise<void> {
     await this.mailerService.sendMail({
-      to: 'haibui.dev.1996@gmail.com',
-      subject: 'Welcome to Nice App! Confirm your Email',
-      template: './confirmation',
+      to: payload.emailReciever,
+      subject: payload.subject,
+      template: './getdocument',
       context: {
-        name: 'haibui',
-        url,
+        name: payload.nameReciever,
+        url: payload.link,
       },
     });
   }
