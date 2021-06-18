@@ -1,10 +1,10 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { ApiProperty } from '@nestjs/swagger';
-import { IsString } from 'class-validator';
-import { ContractEntity } from '../../entities';
+import { IsNotEmpty, IsString } from 'class-validator';
 
 export class SignDTO {
   @ApiProperty()
+  @IsNotEmpty()
   @IsString()
   public contractId: string;
 }
@@ -15,32 +15,21 @@ export class VerifyDTO {
   public contractId?: string;
 
   @ApiProperty()
+  @IsNotEmpty()
   @IsString()
   public signature: string;
 
   @ApiProperty()
+  @IsNotEmpty()
   @IsString()
   public email: string;
 }
 
 export class ContractFileDTO {
   @ApiProperty()
+  @IsNotEmpty()
   @IsString()
   public files: any;
-}
-
-export class PaginationContractDTO {
-  @ApiProperty()
-  page: string;
-
-  @ApiProperty()
-  limit: string;
-}
-
-export class GenericContractResponse {
-  data: Partial<ContractEntity>[];
-  total: number;
-  next: number;
 }
 
 /**

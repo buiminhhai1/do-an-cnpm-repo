@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { ApiProperty } from '@nestjs/swagger';
-import { IsString } from 'class-validator';
+import { IsEnum, IsNotEmpty, IsOptional, IsString } from 'class-validator';
 import { ContractEntity, Status } from '@entities';
 
 // MARK:- Upload file
@@ -9,7 +9,11 @@ import { ContractEntity, Status } from '@entities';
  */
 export class UploadDTO {
   @ApiProperty()
-  // @IsString()
+  @IsString()
+  public userId?: string;
+
+  @ApiProperty()
+  @IsNotEmpty()
   public files: any;
 }
 
@@ -19,6 +23,7 @@ export class UploadDTO {
  */
 export class FileDetailDTO {
   @ApiProperty()
+  @IsNotEmpty()
   @IsString()
   public contractId: string;
 }
@@ -29,18 +34,25 @@ export class FileDetailDTO {
  */
 export class DeleteDTO {
   @ApiProperty()
+  @IsNotEmpty()
   @IsString()
   public contractId: string;
 }
 
 export class PaginationContractDTO {
-  @ApiProperty()
+  @ApiProperty({ enum: Status, examples: [Status.signed, Status.unsigned, null] })
+  @IsEnum(Status)
+  @IsOptional()
   type?: Status = null;
 
   @ApiProperty()
+  @IsNotEmpty()
+  @IsString()
   page: string;
 
   @ApiProperty()
+  @IsNotEmpty()
+  @IsString()
   limit: string;
 }
 

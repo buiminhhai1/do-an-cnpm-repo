@@ -10,7 +10,7 @@ export class KeyEntity extends BaseEntity {
   @Column()
   public publicKeyId: string;
 
-  @OneToOne(() => UserEntity, (user) => user.sign, {
+  @OneToOne(() => UserEntity, (user) => user.key, {
     eager: false,
     onDelete: 'CASCADE',
   })

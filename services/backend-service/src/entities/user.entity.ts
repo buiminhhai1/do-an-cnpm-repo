@@ -42,6 +42,6 @@ export class UserEntity extends BaseEntity {
   @OneToOne(() => GoogleStorageEntity, (store) => store.user)
   public store: GoogleStorageEntity;
 
-  @OneToOne(() => KeyEntity, (sign) => sign.user)
-  public sign: KeyEntity;
+  @OneToOne(() => KeyEntity, (key) => key.user)
+  public key: KeyEntity;
 }

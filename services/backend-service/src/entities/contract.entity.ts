@@ -1,7 +1,9 @@
 import { BaseEntity } from './base';
-import { Column, Entity, ManyToOne, OneToOne } from 'typeorm';
+import { Column, Entity, ManyToOne, OneToMany, OneToOne } from 'typeorm';
 import { GoogleStorageEntity } from './googlestorage.entity';
 import { SignatureEntity } from './signature.entity';
+import { SentEntity } from './sent.entity';
+import { ReceivedEntity } from './received.entity';
 
 export enum Status {
   signed = 'signed',
@@ -32,4 +34,10 @@ export class ContractEntity extends BaseEntity {
 
   @OneToOne(() => SignatureEntity, (signature) => signature.contract)
   public signature: SignatureEntity;
+
+  @OneToMany(() => SentEntity, (sent) => sent.contract)
+  public sents: SentEntity[];
+
+  @OneToOne(() => ReceivedEntity, (recived) => recived.contract)
+  public recived: ReceivedEntity;
 }

@@ -15,13 +15,13 @@ import {
 import { GoogleStorageRepository, ContractRepository } from './googlestorage.repository';
 import { Stream } from 'stream';
 import { DEFAULT_LIMIT, DEFAULT_PAGE, googleStorageConstants } from '@common';
-import { GoogleStorageEntity, Status } from '@entities';
+import { ContractEntity, GoogleStorageEntity, Status } from '@entities';
 import { omit } from 'lodash';
 import { UpdateResult } from 'typeorm';
 
 @Injectable()
 export class GoogleStorageService {
-  private drive;
+  private drive: drive_v3.Drive;
   constructor(
     private readonly googleStorageRepo: GoogleStorageRepository,
     private readonly contractRepo: ContractRepository,
@@ -38,26 +38,27 @@ export class GoogleStorageService {
     });
   }
   // MARK:- Create folder
-  async createStore(): Promise<GoogleStorageEntity> {
-    const isFileExist = await this.findStoreExisted(this.context.userId);
+  async createStore(userId: string): Promise<GoogleStorageEntity> {
+    const isFileExist = await this.findStoreExisted(userId);
     // Check folder name is exist
     if (!isFileExist) {
-      const response = await this.createFolder(this.context.userId, null);
-      const googleStorage = await this.getInfoStorage(this.context.userId);
+      const response = await this.createFolder(userId, null);
+      const googleStorage = await this.getInfoStorage(userId);
       if (googleStorage === null) {
-        return await this.saveStoreDB(response.data.id);
+        return await this.saveStoreDB(response.data.id, userId);
       } else {
         await this.updateStoreBD(response.data.id, googleStorage);
-        return await this.getInfoStorage(this.context.userId);
+        return await this.getInfoStorage(userId);
       }
     }
   }
   // MARK:- Create file
   async uploadContract(payload: Partial<UploadDTO>): Promise<DataResponse> {
     // Create stream buffer to create meta data for upload file on drive
-    let googleStorage = await this.getInfoStorage(this.context.userId);
+    const userId = payload.userId || this.context.userId;
+    let googleStorage = await this.getInfoStorage(userId);
     if (googleStorage === null) {
-      googleStorage = await this.createStore();
+      googleStorage = await this.createStore(userId);
     }
     const response = await this.createFile(payload.files[0], [googleStorage.storeId]);
     if (response.data !== null) {
@@ -95,13 +96,13 @@ export class GoogleStorageService {
                 'version',
                 'store',
                 'id',
-                payload.type === Status.signed ? 'signContract' : '',
+                payload.type === Status.signed ? 'signature' : '',
               ),
               signatureInfo: omit(response.data[i].signature, 'id', 'version'),
               contractName: response.data[i].contractName,
               ...(await this.getInfoOfFile(response.data[i].contractId)),
             },
-            payload.type === Status.signed ? '' : 'signContract',
+            payload.type === Status.signed ? '' : 'signatureInfo',
           ),
         );
       }
@@ -167,12 +168,13 @@ export class GoogleStorageService {
   }
 
   // MARK:- OTHER FUNCTION
-  async saveStoreDB(storeId: string): Promise<GoogleStorageEntity> {
+  async saveStoreDB(storeId: string, userId?: string): Promise<GoogleStorageEntity> {
+    const id = userId || this.context.userId;
     return await this.googleStorageRepo.save(
       this.googleStorageRepo.create({
         storeId: storeId,
-        storeName: this.context.userId,
-        user: { id: this.context.userId },
+        storeName: id,
+        user: { id: id },
       }),
     );
   }
@@ -182,7 +184,7 @@ export class GoogleStorageService {
     return await this.googleStorageRepo.update(googleStorage.id, googleStorage);
   }
 
-  async saveContractDB(contract: any, store: any): Promise<any> {
+  async saveContractDB(contract: any, store: any): Promise<ContractEntity> {
     return await this.contractRepo.save(
       this.contractRepo.create({
         contractId: contract.contractId,
@@ -332,7 +334,7 @@ export class GoogleStorageService {
     if (payload.type !== null) {
       beforeCheck.andWhere('contract.status = :status', { status: payload.type });
       if (payload.type === Status.signed) {
-        beforeCheck.leftJoinAndSelect('contract.signContract', 'signature');
+        beforeCheck.leftJoinAndSelect('contract.signature', 'signature');
       }
     }
     const response = await beforeCheck
@@ -361,6 +363,22 @@ export class GoogleStorageService {
       requestBody: fileMetaData,
       media: media,
     });
+  }
+
+  async copyFile(fileId: string, userId: string): Promise<ContractEntity> {
+    let googleStorage = await this.googleStorageRepo.findOne({ storeName: userId });
+    if (googleStorage === undefined) {
+      googleStorage = await this.createStore(userId);
+    }
+    const newfile = { parents: [googleStorage.storeId] };
+    const response = await this.drive.files.copy({ fileId: fileId, requestBody: newfile });
+    return await this.saveContractDB(
+      {
+        contractId: response.data.id,
+        contractName: response.data.name,
+      },
+      googleStorage,
+    );
   }
 
   getStoreRepo(): GoogleStorageRepository {
