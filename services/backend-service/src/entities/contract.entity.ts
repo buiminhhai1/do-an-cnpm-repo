@@ -1,7 +1,7 @@
 import { BaseEntity } from './base';
 import { Column, Entity, ManyToOne, OneToOne } from 'typeorm';
 import { GoogleStorageEntity } from './googlestorage.entity';
-import { SignContractEntity } from './signcontract.entity';
+import { SignatureEntity } from './signature.entity';
 
 export enum Status {
   signed = 'signed',
@@ -30,6 +30,6 @@ export class ContractEntity extends BaseEntity {
   })
   public store: GoogleStorageEntity;
 
-  @OneToOne(() => SignContractEntity, (signContract) => signContract.contract)
-  public signContract: SignContractEntity;
+  @OneToOne(() => SignatureEntity, (signature) => signature.contract)
+  public signature: SignatureEntity;
 }

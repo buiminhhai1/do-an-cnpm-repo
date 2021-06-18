@@ -1,83 +1,69 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 import { Inject, Injectable } from '@nestjs/common';
-import { SignatureRepository, SignContractRepository } from './signature.repository';
+import { KeyRepository, SignatureRepository } from './signature.repository';
 import * as crypto from 'crypto';
 import { TenantAwareContext } from '@modules/database';
 import { Readable } from 'stream';
 import { UserService } from '@modules/user';
 import { ContractFileDTO, DataResponse, SignDTO, VerifyDTO } from './signature.dto';
-import { GoogleStorageService } from '../googlestorage';
+import { GoogleStorageService } from '@modules/googlestorage';
 import { Stream } from 'stream';
-import { Status } from '../../entities';
+import { KeyEntity, Status } from '@entities';
 
 @Injectable()
 export class SignatureService {
   constructor(
-    private readonly signatureRepo: SignatureRepository,
+    private readonly keyRepo: KeyRepository,
     private readonly userSevice: UserService,
     private readonly storeSevice: GoogleStorageService,
-    private readonly signContractRepo: SignContractRepository,
+    private readonly signatureRepo: SignatureRepository,
     @Inject(TenantAwareContext) private readonly context: TenantAwareContext,
   ) {}
 
-  async createSignature() {
-    const user = await this.userSevice.getUserRepo().findOne({
-      where: {
-        id: this.context.userId,
-      },
-      relations: ['sign'],
-    });
+  async createSignature(): Promise<KeyEntity> {
     const store = await this.storeSevice.getStoreRepo().findOne({ storeName: this.context.userId });
-    if (user !== undefined) {
-      if (user.sign === null) {
-        const { publicKey, privateKey } = crypto.generateKeyPairSync('rsa', {
-          // The standard secure default length for RSA keys is 2048 bits
-          modulusLength: 2048,
-          publicKeyEncoding: {
-            type: 'spki', // recommended to be 'spki' by the Node.js docs
-            format: 'pem',
-          },
-          privateKeyEncoding: {
-            type: 'pkcs8', // recommended to be 'pkcs8' by the Node.js docs
-            format: 'pem',
-          },
-        });
-        if (store === undefined) {
-          return false;
-        }
-        const responsePrivateKey = await this.storeSevice.uploadFile(
-          Buffer.from(privateKey),
-          'privateKey',
-          'application/pem',
-          [store.storeId],
-        );
+    const { publicKey, privateKey } = crypto.generateKeyPairSync('rsa', {
+      // The standard secure default length for RSA keys is 2048 bits
+      modulusLength: 2048,
+      publicKeyEncoding: {
+        type: 'spki', // recommended to be 'spki' by the Node.js docs
+        format: 'pem',
+      },
+      privateKeyEncoding: {
+        type: 'pkcs8', // recommended to be 'pkcs8' by the Node.js docs
+        format: 'pem',
+      },
+    });
+    const responsePrivateKey = await this.storeSevice.uploadFile(
+      Buffer.from(privateKey),
+      'privateKey',
+      'application/pem',
+      [store.storeId],
+    );
 
-        const responsePublicKey = await this.storeSevice.uploadFile(
-          Buffer.from(publicKey),
-          'publicKey',
-          'application/pem',
-          [store.storeId],
-        );
+    const responsePublicKey = await this.storeSevice.uploadFile(
+      Buffer.from(publicKey),
+      'publicKey',
+      'application/pem',
+      [store.storeId],
+    );
 
-        await this.signatureRepo.save(
-          this.signatureRepo.create({
-            privateKeyId: responsePrivateKey.data.id,
-            publicKeyId: responsePublicKey.data.id,
-            user: { id: this.context.userId },
-          }),
-        );
-      }
-    }
+    return await this.keyRepo.save(
+      this.keyRepo.create({
+        privateKeyId: responsePrivateKey.data.id,
+        publicKeyId: responsePublicKey.data.id,
+        user: { id: this.context.userId },
+      }),
+    );
   }
 
   async signing(payload: Partial<SignDTO>): Promise<DataResponse> {
-    const user = await this.userSevice.getUserRepo().findOne({
-      where: {
-        id: this.context.userId,
-      },
-      relations: ['sign'],
-    });
+    const user = await this.userSevice.getUserRepo().findOne({ id: this.context.userId });
+    let key = await this.keyRepo.findOne({ user: user });
+    if (key === undefined) {
+      key = await this.createSignature();
+    }
     const contractInfo = await this.storeSevice.getContractRepo().findOne({
       contractId: payload.contractId,
     });
@@ -90,14 +76,14 @@ export class SignatureService {
     if (contractInfo.status === Status.signed) {
       return {
         data: { status: false },
-        message: `Signing with the contract ID ${payload.contractId} is fail!`,
+        message: `The contract ID ${payload.contractId} is signed!`,
       };
     }
-    const privateKey = await this.getBufferFile(user.sign.privateKeyId);
+    const privateKey = await this.getBufferFile(key.privateKeyId);
     const contract = await this.getBufferFile(payload.contractId);
     const sign = this.RSASign(privateKey.toString('utf8'), contract);
-    await this.signContractRepo.save(
-      this.signContractRepo.create({
+    await this.signatureRepo.save(
+      this.signatureRepo.create({
         signature: sign,
         contract: { id: contractInfo.id },
       }),
@@ -112,17 +98,22 @@ export class SignatureService {
     };
   }
 
-  async verify(contractFile: ContractFileDTO, payload: VerifyDTO): Promise<DataResponse> {
-    const user = await this.userSevice.getUserRepo().findOne({
-      where: {
-        email: payload.email,
-      },
-      relations: ['sign'],
-    });
+  async verifyByFile(
+    contractFile: Partial<ContractFileDTO>,
+    payload: Partial<VerifyDTO>,
+  ): Promise<DataResponse> {
+    const user = await this.userSevice.getUserRepo().findOne({ email: payload.email });
     if (user === undefined) {
       return { data: { status: false }, message: `Email ${payload.email} not existed!` };
     }
-    const publicKey = await this.getBufferFile(user.sign.publicKeyId);
+    const key = await this.keyRepo.findOne({ user: user });
+    if (key === undefined) {
+      return {
+        data: { status: false },
+        message: `The signature ${payload.signature} not existed!`,
+      };
+    }
+    const publicKey = await this.getBufferFile(key.publicKeyId);
     const verify = this.RSAVerify(
       publicKey.toString('utf8'),
       payload.signature,
@@ -130,7 +121,43 @@ export class SignatureService {
     );
     return {
       data: { status: verify },
-      message: verify === true ? 'The signing is true!' : ' The signing or contract is false!',
+      message: verify === true ? 'The signing is true!' : 'The Signature of contract is false!',
+    };
+  }
+
+  async verifyByContractId(payload: Partial<VerifyDTO>): Promise<DataResponse> {
+    const user = await this.userSevice.getUserRepo().findOne({ email: payload.email });
+    if (user === undefined) {
+      return { data: { status: false }, message: `Email ${payload.email} not existed!` };
+    }
+    const key = await this.keyRepo.findOne({ user: user });
+    if (key === undefined) {
+      return {
+        data: { status: false },
+        message: `The signature ${payload.signature} not existed!`,
+      };
+    }
+    const contractInfo = await this.storeSevice.getContractRepo().findOne({
+      contractId: payload.contractId,
+    });
+    if (contractInfo === undefined) {
+      return {
+        data: { status: false },
+        message: `The contract ID ${payload.contractId} not existed!`,
+      };
+    }
+    if (contractInfo.status !== Status.signed) {
+      return {
+        data: { status: false },
+        message: `The contract ID ${payload.contractId} is unsigned!`,
+      };
+    }
+    const publicKey = await this.getBufferFile(key.publicKeyId);
+    const contract = await this.getBufferFile(payload.contractId);
+    const verify = this.RSAVerify(publicKey.toString('utf8'), payload.signature, contract);
+    return {
+      data: { status: verify },
+      message: verify === true ? 'The signing is true!' : 'The Signature of contract is false!',
     };
   }
 

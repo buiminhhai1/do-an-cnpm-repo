@@ -1,9 +1,9 @@
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
-import { Body, Controller, Get, Post, Query, Req, UseInterceptors } from '@nestjs/common';
+import { Body, Controller, Get, Post, Req, UseInterceptors } from '@nestjs/common';
 import { FilesInterceptor } from '@nestjs/platform-express';
 import { ApiTags } from '@nestjs/swagger';
-import { SignDTO, VerifyDTO, ContractFileDTO } from './signature.dto';
+import { SignDTO, VerifyDTO, ContractFileDTO, DataResponse } from './signature.dto';
 import { SignatureService } from './signature.service';
 
 @Controller('signatures')
@@ -11,22 +11,22 @@ import { SignatureService } from './signature.service';
 export class SignatureController {
   constructor(private readonly signatureService: SignatureService) {}
 
-  @Get()
-  async generateKey() {
-    await this.signatureService.createSignature();
-  }
-
   @Post('sign')
-  async signingContract(@Body() payload: SignDTO): Promise<boolean> {
+  async signingContract(@Body() payload: Partial<SignDTO>): Promise<DataResponse> {
     return await this.signatureService.signing(payload);
   }
 
-  @Post('verify')
+  @Post('verifyByFile')
   @UseInterceptors(FilesInterceptor('contract'))
   async verifyContract(
-    @Req() contractFile: ContractFileDTO,
-    @Body() payload: VerifyDTO,
-  ): Promise<boolean> {
-    return await this.signatureService.verify(contractFile, payload);
+    @Req() contractFile: Partial<ContractFileDTO>,
+    @Body() payload: Partial<VerifyDTO>,
+  ): Promise<DataResponse> {
+    return await this.signatureService.verifyByFile(contractFile, payload);
+  }
+
+  @Post('verifyByIdContract')
+  async verifyByContractId(@Body() payload: Partial<VerifyDTO>): Promise<DataResponse> {
+    return await this.signatureService.verifyByContractId(payload);
   }
 }

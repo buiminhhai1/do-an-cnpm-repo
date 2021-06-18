@@ -4,10 +4,10 @@ import { AuthMiddleware, JWTConfigurationProvider, TenantContextMiddleware } fro
 import { AuthModule, AuthService } from '@modules/auth';
 
 import { DatabaseModule } from './modules/database';
-import { GoogleStorageModule } from '@modules/googlestorage/googlestorage.module';
+import { GoogleStorageModule } from '@modules/googlestorage';
 import { MailModule } from './mail/mail.module';
 import { MailService } from './mail/mail.service';
-import { SignatureModule } from '@modules/signature/signature.module';
+import { SignatureModule } from '@modules/signature';
 
 @Module({
   imports: [
@@ -42,9 +42,9 @@ export class AppModule implements NestModule {
         '/google_storage/contracts',
         '/google_storage/contracts/signle_contract',
         // Signature
-        './signatures',
         './signatures/sign',
-        './signatures/verify',
+        './signatures/verifyByFile',
+        './signatures/verifyByIdContract',
       );
   }
 }
