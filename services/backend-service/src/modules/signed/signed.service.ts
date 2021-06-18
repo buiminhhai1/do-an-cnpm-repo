@@ -49,7 +49,6 @@ export class SignedService {
       }),
     );
     const contractReceived = await this.storeSevice.copyFile(contract.contractId, receiver.id);
-    console.log(contractReceived);
     await this.receivedRepo.save(
       this.receivedRepo.create({
         emailSender: user.email,
