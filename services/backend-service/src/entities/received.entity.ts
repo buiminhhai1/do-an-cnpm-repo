@@ -13,6 +13,12 @@ export class ReceivedEntity extends BaseEntity {
   @Column()
   public emailSender: string;
 
+  @Column({ nullable: true })
+  public signature: string;
+
+  @Column()
+  public subject: string;
+
   @Column({
     type: 'enum',
     enum: ReceiverContractStatus,

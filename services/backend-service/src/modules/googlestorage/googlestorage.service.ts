@@ -15,7 +15,7 @@ import {
 import { GoogleStorageRepository, ContractRepository } from './googlestorage.repository';
 import { Stream } from 'stream';
 import { DEFAULT_LIMIT, DEFAULT_PAGE, googleStorageConstants } from '@common';
-import { ContractEntity, GoogleStorageEntity, Status } from '@entities';
+import { ContractEntity, GoogleStorageEntity, Status, Type } from '@entities';
 import { omit } from 'lodash';
 import { UpdateResult } from 'typeorm';
 
@@ -66,6 +66,8 @@ export class GoogleStorageService {
         {
           contractId: response.data.id,
           contractName: payload.files[0].originalname,
+          status: Status.unsigned,
+          type: Type.owner,
         },
         googleStorage,
       );
@@ -96,13 +98,13 @@ export class GoogleStorageService {
                 'version',
                 'store',
                 'id',
-                payload.type === Status.signed ? 'signature' : '',
+                payload.status === Status.signed ? 'signature' : '',
               ),
               signatureInfo: omit(response.data[i].signature, 'id', 'version'),
               contractName: response.data[i].contractName,
               ...(await this.getInfoOfFile(response.data[i].contractId)),
             },
-            payload.type === Status.signed ? '' : 'signatureInfo',
+            payload.status === Status.signed ? '' : 'signatureInfo',
           ),
         );
       }
@@ -189,7 +191,8 @@ export class GoogleStorageService {
       this.contractRepo.create({
         contractId: contract.contractId,
         contractName: contract.contractName,
-        status: Status.unsigned,
+        status: contract.status,
+        type: contract.type,
         store: store,
       }),
     );
@@ -258,12 +261,16 @@ export class GoogleStorageService {
     return str;
   }
 
-  async getInfoOfFile(fileId: string): Promise<{ publicLink: string; download: string }> {
+  async getInfoOfFile(
+    fileId: string,
+  ): Promise<{ publicLink: string; download: string; size: string; thumbnailLink: string }> {
     const isContractExisted = await this.findContractExisted(fileId);
     if (!isContractExisted) {
       return {
         publicLink: '',
         download: '',
+        size: '',
+        thumbnailLink: '',
       };
     }
     // waiting for access permission
@@ -277,17 +284,21 @@ export class GoogleStorageService {
     // get public link and download link
     const result = await this.drive.files.get({
       fileId: fileId,
-      fields: 'webViewLink, webContentLink',
+      fields: 'webViewLink, webContentLink, size, thumbnailLink',
     });
     if (result.status === 200) {
       return {
         publicLink: result.data.webViewLink,
         download: result.data.webContentLink,
+        size: result.data.size,
+        thumbnailLink: result.data.thumbnailLink,
       };
     } else {
       return {
         publicLink: '',
         download: '',
+        size: '',
+        thumbnailLink: '',
       };
     }
   }
@@ -330,10 +341,16 @@ export class GoogleStorageService {
     const beforeCheck = this.contractRepo
       .createQueryBuilder('contract')
       .leftJoinAndSelect('contract.store', 'store')
-      .where('store.storeId = :storeId', { storeId: googleStorage.storeId });
-    if (payload.type !== null) {
-      beforeCheck.andWhere('contract.status = :status', { status: payload.type });
-      if (payload.type === Status.signed) {
+      .where('store.storeId = :storeId', { storeId: googleStorage.storeId })
+      .andWhere('contract.type = :type', { type: payload.type || Type.owner });
+    if (payload.type === Type.receiver) {
+      beforeCheck.leftJoinAndSelect('contract.recived', 'recived');
+    } else if (payload.type === Type.sender) {
+      beforeCheck.leftJoinAndSelect('contract.sent', 'sent');
+    }
+    if (payload.status !== null) {
+      beforeCheck.andWhere('contract.status = :status', { status: payload.status });
+      if (payload.status === Status.signed) {
         beforeCheck.leftJoinAndSelect('contract.signature', 'signature');
       }
     }
@@ -376,6 +393,8 @@ export class GoogleStorageService {
       {
         contractId: response.data.id,
         contractName: response.data.name,
+        status: Status.unsigned,
+        type: Type.receiver,
       },
       googleStorage,
     );

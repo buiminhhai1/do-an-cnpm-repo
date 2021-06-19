@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { ApiProperty } from '@nestjs/swagger';
 import { IsEnum, IsNotEmpty, IsOptional, IsString } from 'class-validator';
-import { ContractEntity, Status } from '@entities';
+import { ContractEntity, Status, Type } from '@entities';
 
 // MARK:- Upload file
 /**
@@ -43,7 +43,12 @@ export class PaginationContractDTO {
   @ApiProperty({ enum: Status, examples: [Status.signed, Status.unsigned, null] })
   @IsEnum(Status)
   @IsOptional()
-  type?: Status = null;
+  status?: Status = null;
+
+  @ApiProperty({ enum: Type, examples: [Type.owner, Type.receiver, Type.sender, null] })
+  @IsEnum(Type)
+  @IsOptional()
+  type?: Type = null;
 
   @ApiProperty()
   @IsNotEmpty()

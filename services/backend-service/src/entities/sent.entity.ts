@@ -1,5 +1,5 @@
 import { BaseEntity } from './base';
-import { Entity, Column, ManyToOne } from 'typeorm';
+import { Entity, Column, OneToOne, JoinColumn } from 'typeorm';
 import { ContractEntity } from './contract.entity';
 
 export enum SentContractStatus {
@@ -13,6 +13,12 @@ export class SentEntity extends BaseEntity {
   @Column()
   public emailReceiver: string;
 
+  @Column({ nullable: true })
+  public signature: string;
+
+  @Column()
+  public subject: string;
+
   @Column({
     type: 'enum',
     enum: SentContractStatus,
@@ -20,9 +26,10 @@ export class SentEntity extends BaseEntity {
   })
   public status: SentContractStatus;
 
-  @ManyToOne(() => ContractEntity, (contract) => contract.signature, {
+  @OneToOne(() => ContractEntity, (contract) => contract.sent, {
     eager: false,
     onDelete: 'CASCADE',
   })
+  @JoinColumn()
   contract: ContractEntity;
 }

@@ -8,7 +8,7 @@ import { GoogleStorageModule } from '@modules/googlestorage';
 import { MailModule } from './mail/mail.module';
 import { MailService } from './mail/mail.service';
 import { SignatureModule } from '@modules/signature';
-import { SignedModule } from '@modules/signed';
+import { TransactionModule } from '@modules/signed';
 
 @Module({
   imports: [
@@ -21,7 +21,7 @@ import { SignedModule } from '@modules/signed';
     GoogleStorageModule,
     MailModule,
     SignatureModule,
-    SignedModule,
+    TransactionModule,
   ],
   providers: [AuthService, MailService],
   exports: [AuthService, MailService],
@@ -47,8 +47,9 @@ export class AppModule implements NestModule {
         './signatures/sign',
         './signatures/verifyByFile',
         './signatures/verifyByIdContract',
-        // Signed
-        './signeds',
+        // Transactionsss
+        './transactions/sending',
+        './transactions/receiving',
       );
   }
 }

@@ -1,12 +1,13 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { scanComponents, scanEntities } from '@common';
-import * as repositories from './signed.repository';
-import { SignedService } from './signed.service';
-import * as controllers from './signed.controller';
+import * as repositories from './transaction.repository';
+import { TransactionService } from './transaction.service';
+import * as controllers from './transaction.controller';
 import { UserModule } from '@modules/user';
 import { GoogleStorageModule } from '@modules/googlestorage';
 import { MailModule } from '../../mail/mail.module';
+import { SignatureModule } from '@modules/signature';
 
 @Module({
   imports: [
@@ -14,9 +15,10 @@ import { MailModule } from '../../mail/mail.module';
     UserModule,
     GoogleStorageModule,
     MailModule,
+    SignatureModule,
   ],
-  providers: [SignedService],
+  providers: [TransactionService],
   controllers: [...scanComponents(controllers)],
-  exports: [SignedService],
+  exports: [TransactionService],
 })
-export class SignedModule {}
+export class TransactionModule {}
