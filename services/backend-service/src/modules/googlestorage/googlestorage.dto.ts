@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { ApiProperty } from '@nestjs/swagger';
-import { IsString } from 'class-validator';
+import { IsEnum, IsNotEmpty, IsOptional, IsString } from 'class-validator';
+import { ContractEntity, Status, Type } from '@entities';
 
 // MARK:- Upload file
 /**
@@ -8,7 +9,11 @@ import { IsString } from 'class-validator';
  */
 export class UploadDTO {
   @ApiProperty()
-  // @IsString()
+  @IsString()
+  public userId?: string;
+
+  @ApiProperty()
+  @IsNotEmpty()
   public files: any;
 }
 
@@ -18,6 +23,7 @@ export class UploadDTO {
  */
 export class FileDetailDTO {
   @ApiProperty()
+  @IsNotEmpty()
   @IsString()
   public contractId: string;
 }
@@ -28,9 +34,39 @@ export class FileDetailDTO {
  */
 export class DeleteDTO {
   @ApiProperty()
+  @IsNotEmpty()
   @IsString()
   public contractId: string;
 }
+
+export class PaginationContractDTO {
+  @ApiProperty({ enum: Status, examples: [Status.signed, Status.unsigned, null] })
+  @IsEnum(Status)
+  @IsOptional()
+  status?: Status = null;
+
+  @ApiProperty({ enum: Type, examples: [Type.owner, Type.receiver, Type.sender, null] })
+  @IsEnum(Type)
+  @IsOptional()
+  type?: Type = null;
+
+  @ApiProperty()
+  @IsNotEmpty()
+  @IsString()
+  page: string;
+
+  @ApiProperty()
+  @IsNotEmpty()
+  @IsString()
+  limit: string;
+}
+
+export class GenericContractResponse {
+  data: Partial<ContractEntity>[];
+  total: number;
+  next: number;
+}
+
 /**
  * Data Response
  */

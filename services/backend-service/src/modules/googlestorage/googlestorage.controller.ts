@@ -13,7 +13,13 @@ import {
 import { ApiTags } from '@nestjs/swagger';
 import { omit } from 'lodash';
 import { GoogleStorageService } from './googlestorage.service';
-import { DeleteDTO, FileDetailDTO, UploadDTO, DataResponse } from './googlestorage.dto';
+import {
+  DeleteDTO,
+  FileDetailDTO,
+  UploadDTO,
+  DataResponse,
+  PaginationContractDTO,
+} from './googlestorage.dto';
 import { FilesInterceptor } from '@nestjs/platform-express';
 
 @Controller('google_storage')
@@ -37,8 +43,8 @@ export class GoogleStorageController {
   }
 
   @Get('contracts')
-  async listContract(): Promise<DataResponse> {
-    return omit(await this.googleStorageService.getAllContract());
+  async listContract(@Query() payload: PaginationContractDTO): Promise<DataResponse> {
+    return omit(await this.googleStorageService.getAllContract(payload));
   }
 
   @Get('contracts/single_contract')
