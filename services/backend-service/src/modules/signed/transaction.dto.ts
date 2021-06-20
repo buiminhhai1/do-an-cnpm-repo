@@ -40,6 +40,18 @@ export class ReturnDTO {
   public contractId: string;
 }
 
+export class DestroyContract {
+  @ApiProperty()
+  @IsNotEmpty()
+  @IsEmail()
+  public email: string;
+
+  @ApiProperty()
+  @IsNotEmpty()
+  @IsString()
+  public contractId: string;
+}
+
 /**
  * Data Response
  */

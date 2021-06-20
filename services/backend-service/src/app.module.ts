@@ -50,6 +50,7 @@ export class AppModule implements NestModule {
         // Transactionsss
         './transactions/sending',
         './transactions/receiving',
+        './transactions/destroy',
       );
   }
 }

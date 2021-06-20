@@ -10,7 +10,7 @@ export class MailService {
     await this.mailerService.sendMail({
       to: payload.emailReciever,
       subject: payload.subject,
-      template: './getdocument',
+      template: payload.documentSign !== null ? './getdocument' : './destroycontract',
       context: {
         name: payload.nameReciever,
         url: payload.link,
