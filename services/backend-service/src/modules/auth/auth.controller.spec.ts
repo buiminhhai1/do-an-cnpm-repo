@@ -1,7 +1,8 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { DatabaseModule, TenantAwareContext } from '../database';
-import { UserController } from './user.controller';
-import { UserService } from './user.service';
+import { AuthController } from './auth.controller';
+import { AuthService } from './auth.service';
+import { UserService } from '@modules/user';
+import { UserRole } from '@entities';
 const testUser = {
   username: "string",
   firstName: "string",
@@ -35,54 +36,60 @@ const users = {
   total: 1,
   next: -1
 }
-describe('UserController', () => {
-  let controller: UserController;
-  const mockUserDetail = {
-    username: 'mockuser',
-    firstName: 'mock',
-    lastName: 'user',
-    email: 'mock@user.com',
-    phoneNumber: '0123456789',
-    address: 'dummy address',
-    role: 'user',
-  };
+describe('Auth Controller', () => {
+  let authController: AuthController;
+
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      imports: [DatabaseModule],
-      controllers: [UserController],
+      controllers: [AuthController],
       providers: [
+        AuthService,
         {
           provide: UserService,
-          useValue: {
-            getUserDetail: jest.fn().mockResolvedValue(mockUserDetail),
-            getUserById: jest.fn().mockImplementation((id: string) => mockUserDetail),
-          },
-        },
-        {
-          provide: TenantAwareContext,
-          useValue: {
-            get userId(): string {
-              return 'dummy-id';
-            },
-            get tenantId(): string {
-              return 'dummy-tenant';
-            },
-          },
-        },
-      ],
+          useValue:{
+            register: jest.fn(()=>testUser),
+            login: jest.fn(()=>testToken),
+            getUsers: jest.fn(()=>users),
+          }
+        }
+      ]
     }).compile();
-    controller = module.get<UserController>(UserController);
-  });
 
+    authController = module.get<AuthController>(AuthController);
+  });
   it('should to definded', () => {
-    expect(controller).toBeDefined();
+    expect(authController).toBeDefined();
+  });
+  it('should return new User Information"', () => {
+    expect(authController.register( {
+    
+      firstName: "string",
+      lastName: "string",
+      username: "string",
+      password: "string",
+      email: "string@gmail.com",
+      phoneNumber: "string",
+      address: "string",
+      role: UserRole.admin  ,
+    })).toBe(testUser);
   });
 
-  describe('getUserDetail', () => {
-    it('should return user detail', async () => {
-      const userDetail = await controller.getUserDetail();
-      expect(userDetail).toEqual(mockUserDetail);
-      expect(userDetail.password).toBeUndefined();
-    });
+  it('should return access token"', () => {
+
+    expect(authController.login( {
+      username: "string",
+      password: "string"
+    })).toBe(testToken);
   });
-});
+  it('should return array of user"', async () => {
+    const userList =await authController.getUsers({
+      page: "1",
+      limit:"10",
+    })
+    expect(userList).toBe(users);
+  });
+  it('should return status code',()=>{
+    expect(authController.changePassword({passwordUpdated:"newpassword"})).toBeDefined();
+  })
+
+})
