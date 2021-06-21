@@ -23,7 +23,7 @@ export class UserEntity extends BaseEntity {
   @Column()
   public lastName: string;
 
-  @Column()
+  @Column({ nullable: true })
   public email: string;
 
   @Column({ nullable: true })
