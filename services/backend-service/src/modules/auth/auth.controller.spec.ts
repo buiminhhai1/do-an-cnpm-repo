@@ -3,6 +3,8 @@ import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
 import { UserService } from '@modules/user';
 import { UserRole } from '@entities';
+import { CredentialDTO, GenericUserResponse, LoginDTO, PaginationAuthDTO } from '@modules/auth';
+
 const testUser = {
   username: "string",
   firstName: "string",
@@ -43,13 +45,18 @@ describe('Auth Controller', () => {
     const module: TestingModule = await Test.createTestingModule({
       controllers: [AuthController],
       providers: [
-        AuthService,
+        {
+          provide: AuthService,
+          useValue:{
+            login: jest.fn().mockImplementation((payload: LoginDTO)=>Promise.resolve(testToken)),
+          }
+        },
         {
           provide: UserService,
           useValue:{
-            register: jest.fn(()=>testUser),
-            login: jest.fn(()=>testToken),
-            getUsers: jest.fn(()=>users),
+            register: jest.fn().mockImplementation((payload: CredentialDTO)=>Promise.resolve(testUser)),
+            changePassword: jest.fn().mockImplementation((passwordUpdated: string)=>Promise.resolve({status:"updated"})),
+            getUsers: jest.fn().mockImplementation((payload: PaginationAuthDTO)=>Promise.resolve(users)),
           }
         }
       ]
@@ -60,8 +67,8 @@ describe('Auth Controller', () => {
   it('should to definded', () => {
     expect(authController).toBeDefined();
   });
-  it('should return new User Information"', () => {
-    expect(authController.register( {
+  it('should return new User Information"',async () => {
+    expect(await authController.register( {
     
       firstName: "string",
       lastName: "string",
@@ -74,9 +81,9 @@ describe('Auth Controller', () => {
     })).toBe(testUser);
   });
 
-  it('should return access token"', () => {
+  it('should return access token"',async () => {
 
-    expect(authController.login( {
+    expect(await authController.login( {
       username: "string",
       password: "string"
     })).toBe(testToken);
@@ -88,8 +95,8 @@ describe('Auth Controller', () => {
     })
     expect(userList).toBe(users);
   });
-  it('should return status code',()=>{
-    expect(authController.changePassword({passwordUpdated:"newpassword"})).toBeDefined();
+  it('should return status code',async()=>{
+    expect(await authController.changePassword({passwordUpdated:"newpassword"})).toEqual({status:"updated"});
   })
 
 })
