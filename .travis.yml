@@ -6,7 +6,7 @@ node_js:
 
 branches:
   only:
-  - master
+  - development
   - /./
 
 notifications:
@@ -45,6 +45,6 @@ deploy:
   bucket_name: 'elasticbeanstalk-ap-southeast-1-076949635368'
   bucket_path: 'hw3-cicd'
   on:
-    branch: master
+    branch: development
   access_key_id: $AWS_ACCESS_KEY
   secret_access_key: $AWS_SECRET_KEY
