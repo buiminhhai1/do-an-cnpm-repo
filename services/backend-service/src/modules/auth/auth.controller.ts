@@ -18,7 +18,7 @@ import {
   GenericUserResponse,
   LoginDTO,
   PaginationAuthDTO,
-  TokenJWTDTO,
+  PayloadDTO,
   
 } from './auth.dto';
 import { AuthService } from './auth.service';
@@ -39,7 +39,7 @@ export class AuthController {
   }
 
   @Post('login')
-  async login(@Body() payload: LoginDTO): Promise<TokenJWTDTO> {
+  async login(@Body() payload: LoginDTO): Promise<PayloadDTO> {
     const credential = await this.userService.veriffyUser(payload);
     if (!credential) {
       throw new UnauthorizedException();
