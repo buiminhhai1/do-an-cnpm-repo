@@ -11,8 +11,11 @@ export class GoogleStorageEntity extends BaseEntity {
   @Column()
   storeName: string;
 
-  @OneToMany(() => ContractEntity, (contract) => contract.store)
-  contract: ContractEntity[];
+  @OneToMany(() => ContractEntity, (contract) => contract.store, {
+    eager: false,
+    onDelete: 'CASCADE',
+  })
+  contracts: ContractEntity[];
 
   @OneToOne(() => UserEntity, (user) => user.store, { eager: false, onDelete: 'CASCADE' })
   @JoinColumn()

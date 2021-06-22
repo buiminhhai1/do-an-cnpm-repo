@@ -6,6 +6,10 @@ import { AuthModule, AuthService } from '@modules/auth';
 import { DatabaseModule } from './modules/database';
 import { GoogleStorageModule } from '@modules/googlestorage/googlestorage.module';
 import { CommonModule } from '@modules/common';
+import { MailModule } from './mail/mail.module';
+import { MailService } from './mail/mail.service';
+import { SignatureModule } from '@modules/signature';
+import { TransactionModule } from '@modules/signed';
 
 @Module({
   imports: [
@@ -16,10 +20,13 @@ import { CommonModule } from '@modules/common';
     },
     AuthModule,
     GoogleStorageModule,
-    CommonModule
+    CommonModule,
+    MailModule,
+    SignatureModule,
+    TransactionModule,
   ],
-  providers: [AuthService],
-  exports: [AuthService],
+  providers: [AuthService, MailService],
+  exports: [AuthService, MailService],
 })
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer): MiddlewareConsumer {
@@ -27,7 +34,7 @@ export class AppModule implements NestModule {
       .apply(TenantContextMiddleware)
       .forRoutes('*')
       .apply(AuthMiddleware)
-      .exclude('/swagger', '/health', '/auth/register', '/auth/login', '/common/profile-image', {
+      .exclude('/swagger', '/health', '/auth/register', '/auth/login', '/mail', '/common/profile-image', {
         path: '/authors',
         method: RequestMethod.GET,
       })
@@ -35,8 +42,17 @@ export class AppModule implements NestModule {
       .apply(TenantContextMiddleware)
       .forRoutes(
         '/auth/admin',
+        // Store and contract
         '/google_storage/contracts',
         '/google_storage/contracts/signle_contract',
+        // Signature
+        './signatures/sign',
+        './signatures/verifyByFile',
+        './signatures/verifyByIdContract',
+        // Transactionsss
+        './transactions/sending',
+        './transactions/receiving',
+        './transactions/destroy',
       );
   }
 }

@@ -57,11 +57,11 @@ export class UserService {
     const res = await this.userRepo
       .createQueryBuilder('user')
       .orderBy('user.createdAt', 'ASC')
-      .limit(pageSize)
-      .skip(pageNumber)
+      .take(pageSize)
+      .skip(pageSize * (pageNumber - 1))
       .getManyAndCount();
     const data = res[0].map((item) => omit(item, 'password'));
-    const next = pageSize * (pageNumber + 1) < res[1] ? pageNumber + 1 : -1;
+    const next = pageSize * pageNumber < res[1] ? pageNumber + 1 : -1;
     return { data, total: res[1], next };
   }
 

@@ -1,6 +1,7 @@
 import { BaseEntity } from './base';
 import { Column, Entity, OneToOne, Unique } from 'typeorm';
 import { GoogleStorageEntity } from './googlestorage.entity';
+import { KeyEntity } from './key.entity';
 
 export enum UserRole {
   admin = 'admin',
@@ -22,7 +23,7 @@ export class UserEntity extends BaseEntity {
   @Column()
   public lastName: string;
 
-  @Column()
+  @Column({ nullable: true })
   public email: string;
 
   @Column({ nullable: true })
@@ -43,4 +44,7 @@ export class UserEntity extends BaseEntity {
 
   @OneToOne(() => GoogleStorageEntity, (store) => store.user)
   public store: GoogleStorageEntity;
+
+  @OneToOne(() => KeyEntity, (key) => key.user)
+  public key: KeyEntity;
 }
