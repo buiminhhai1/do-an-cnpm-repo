@@ -116,7 +116,13 @@ export class GoogleStorageService {
   }
 
   async getDetailContract(payload: Partial<FileDetailDTO>): Promise<DataResponse> {
-    const contract = await this.contractRepo.findOne({ contractId: payload.contractId });
+    let contract = await this.contractRepo.findOne({ contractId: payload.contractId });
+    if (contract.type !== Type.owner) {
+      contract = await this.contractRepo.findOne({
+        where: { contractId: payload.contractId },
+        relations: contract.type === Type.sender ? ['sent'] : ['recived'],
+      });
+    }
     if (contract === undefined) {
       return { data: null, message: 'The contract id not exist in database!' };
     }
