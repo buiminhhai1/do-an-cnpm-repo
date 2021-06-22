@@ -75,8 +75,6 @@ export class UserService {
     await this.userRepo.save(user);
   }
 
-  getUserRepo(): UserRepository {
-    return this.userRepo;
   async changeUserInfo(updatedUserInfo: ChangeUserInfoDTO):Promise<void>{
     const user = await this.getUserById(this.context.userId);
     // console.log(updatedUserInfo)
