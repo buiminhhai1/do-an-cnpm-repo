@@ -38,3 +38,5 @@ export class ChangeUserInfoDTO {
     @IsString()
     public imageId: string;
   }
+
+ 

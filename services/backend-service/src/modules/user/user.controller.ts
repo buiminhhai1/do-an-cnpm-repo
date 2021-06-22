@@ -50,9 +50,5 @@ export class UserController {
     console.log(file.filename);
     return await  this.userService.changeProfileImage(file.filename);
   }
-  @Get('profile-image')
-  async findProfileImage(@Res() res): Promise<Observable<Object>> {
-    const user = await this.userService.getUserById(this.context.userId);
-    return of(res.sendFile(process.cwd() + '/upload/profileimages/' + user.imageId));
-  }
+  
 }
