@@ -94,4 +94,7 @@ export class UserService {
 
     await this.userRepo.save(user);
   }
+  getUserRepo(): UserRepository {
+    return this.userRepo;
+  }
 }
