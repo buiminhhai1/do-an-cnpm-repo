@@ -1,7 +1,7 @@
 import { UserEntity } from '@entities';
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import { AuthPayloadDTO, TokenJWTDTO } from './auth.dto';
+import { AuthPayloadDTO, PayloadDTO } from './auth.dto';
 
 @Injectable()
 export class AuthService {
@@ -18,8 +18,10 @@ export class AuthService {
       throw new UnauthorizedException('Access Token illegal');
     }
   }
-  async login(payload: Partial<UserEntity>): Promise<TokenJWTDTO> {
+  async login(payload: Partial<UserEntity>): Promise<PayloadDTO> {
     return {
+      id: payload.id,
+      username: payload.username,
       access_token: await this.encode(payload),
     };
   }
