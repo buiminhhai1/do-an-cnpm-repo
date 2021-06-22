@@ -54,6 +54,7 @@ describe('Auth Controller', () => {
         {
           provide: UserService,
           useValue:{
+            veriffyUser: jest.fn().mockImplementation((payload: CredentialDTO)=>Promise.resolve(testUser)),
             register: jest.fn().mockImplementation((payload: CredentialDTO)=>Promise.resolve(testUser)),
             changePassword: jest.fn().mockImplementation((passwordUpdated: string)=>Promise.resolve({status:"updated"})),
             getUsers: jest.fn().mockImplementation((payload: PaginationAuthDTO)=>Promise.resolve(users)),
