@@ -1,0 +1,50 @@
+sudo: required
+
+language: node_js
+node_js:
+  - 12
+
+branches:
+  only:
+  - master
+  - /./
+
+notifications:
+  email:
+    recipients:
+      - haibui.dev.1996@gmail.com
+      - nguyenhoanganh806@gmail.com
+    on_success: always
+    on_failure: always
+  slack:
+    rooms:
+      - hw3-cicd:4AGydYWVwKwaLFRDHh7CoYRH#build-notifications
+    if: branch == master
+    on_failure: always
+    on_success: always
+
+services:
+  - docker
+
+before_install:
+  - docker build -t $DOCKER_ID/backend-test -f ./services/backend-service/Dockerfile.dev ./services/backend-service
+script:
+  - docker run -e CI=true $DOCKER_ID/backend-test npm run test
+
+after_success:
+  - echo docker logout
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+  - docker build -t $DOCKER_ID/backend-cnpm ./services/backend-service
+  - docker push $DOCKER_ID/backend-cnpm
+
+deploy:
+  provider: elasticbeanstalk
+  region: 'ap-southeast-1'
+  app: 'hw3-cicd'
+  env: 'Hw3cicd-env'
+  bucket_name: 'elasticbeanstalk-ap-southeast-1-076949635368'
+  bucket_path: 'hw3-cicd'
+  on:
+    branch: master
+  access_key_id: $AWS_ACCESS_KEY
+  secret_access_key: $AWS_SECRET_KEY
