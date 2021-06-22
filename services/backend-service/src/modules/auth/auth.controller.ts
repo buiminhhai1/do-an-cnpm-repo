@@ -5,6 +5,7 @@ import {
   Patch,
   Post,
   Query,
+  Res,
   UnauthorizedException,
   UseGuards,
 } from '@nestjs/common';
@@ -18,9 +19,11 @@ import {
   LoginDTO,
   PaginationAuthDTO,
   TokenJWTDTO,
+  
 } from './auth.dto';
 import { AuthService } from './auth.service';
 import { UserEntity } from '@entities';
+import { Observable, of } from 'rxjs';
 
 @Controller('auth')
 @ApiTags('Credential')
@@ -59,4 +62,5 @@ export class AuthController {
   async changePassword(@Body() payload: ChangePasswordDTO): Promise<void> {
     return await this.userService.changePassword(payload.passwordUpdated);
   }
+ 
 }
