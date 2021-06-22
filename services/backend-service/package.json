@@ -24,7 +24,7 @@
     "test:e2e": "jest --config ./test/jest-e2e.json",
     "lint": "eslint ./src --ext .js,.ts",
     "mi:create": "yarn typeorm migration:create --dir ./src/migrations -n",
-    "mail:build": "cp -r ./src/mail/templates ./dist/src/mail "
+    "mail:build": "mkdir -p /usr/app/dist/src/mail && cp -r ./src/mail/templates ./dist/src/mail "
   },
   "dependencies": {
     "@nestjs-modules/mailer": "1.6.0",
