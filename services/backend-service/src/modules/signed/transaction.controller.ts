@@ -2,7 +2,7 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 import { Body, Controller, Post } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
-import { DataResponse, ReturnDTO, SentDTO } from './transaction.dto';
+import { DataResponse, DestroyContract, ReturnDTO, SentDTO } from './transaction.dto';
 import { TransactionService } from './transaction.service';
 
 @Controller('transactions')
@@ -18,5 +18,10 @@ export class TransactionController {
   @Post('receiving')
   async returnContract(@Body() payload: ReturnDTO): Promise<DataResponse> {
     return await this.signedService.returnToPartner(payload);
+  }
+
+  @Post('destroy')
+  async destroyContract(@Body() payload: DestroyContract): Promise<DataResponse> {
+    return await this.signedService.destroyContract(payload);
   }
 }

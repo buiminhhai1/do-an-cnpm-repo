@@ -3,7 +3,13 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { SentRepository, ReceivedRepository } from './transaction.repository';
 import { TenantAwareContext } from '@modules/database';
-import { DataResponse, ReturnDTO, SentDTO, StatusContract } from './transaction.dto';
+import {
+  DataResponse,
+  DestroyContract,
+  ReturnDTO,
+  SentDTO,
+  StatusContract,
+} from './transaction.dto';
 import { GoogleStorageService } from '@modules/googlestorage';
 import { UserService } from '@modules/user';
 import { MailService } from '../../mail/mail.service';
@@ -29,6 +35,13 @@ export class TransactionService {
       return { data: null, message: 'Email not exist!' };
     }
     const user = await this.userService.getUserRepo().findOne({ id: this.context.userId });
+    const sentInfo = await this.sentRepo.findOne({
+      emailReceiver: payload.email,
+      status: SentContractStatus.pending,
+    });
+    if (sentInfo !== undefined) {
+      return { data: null, message: `You have had a transaction pending with ${payload.email}!` };
+    }
     let contract = await this.storeSevice
       .getContractRepo()
       .findOne({ contractId: payload.contractId });
@@ -160,7 +173,53 @@ export class TransactionService {
         { emailSender: payload.email, status: ReceiverContractStatus.pending },
         receivedInfo,
       );
+      const data = {
+        link: '',
+        documentSign: null,
+        emailReciever: payload.email,
+        nameReciever: sender.lastName,
+        subject: sentInfo.subject,
+      };
+      await this.mailService.sendLink(data);
       return { data: { status: true }, message: 'The contract has been destroy success!' };
     }
+  }
+
+  async destroyContract(payload: Partial<DestroyContract>): Promise<DataResponse> {
+    const sender = await this.userService.getUserRepo().findOne({ email: payload.email });
+    if (sender === undefined) {
+      return { data: null, message: 'Email not exist!' };
+    }
+    const user = await this.userService.getUserRepo().findOne({ id: this.context.userId });
+    const sentInfo = await this.sentRepo.findOne({
+      where: { emailReceiver: payload.email, status: SentContractStatus.pending },
+      relations: ['contract'],
+    });
+    if (sentInfo === undefined) {
+      return { data: null, message: 'The Contract can not be destroy!' };
+    }
+    const receivedInfo = await this.receivedRepo.findOne({
+      where: { emailSender: user.email, status: ReceiverContractStatus.pending },
+      relations: ['contract'],
+    });
+    sentInfo.status = SentContractStatus.destroyed;
+    receivedInfo.status = ReceiverContractStatus.destroyed;
+    await this.sentRepo.update(
+      { emailReceiver: payload.email, status: SentContractStatus.pending },
+      sentInfo,
+    );
+    await this.receivedRepo.update(
+      { emailSender: user.email, status: ReceiverContractStatus.pending },
+      receivedInfo,
+    );
+    const data = {
+      link: '',
+      documentSign: null,
+      emailReciever: payload.email,
+      nameReciever: sender.lastName,
+      subject: sentInfo.subject,
+    };
+    await this.mailService.sendLink(data);
+    return { data: { status: true }, message: 'The contract has been destroy success!' };
   }
 }
