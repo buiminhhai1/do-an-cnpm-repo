@@ -5,6 +5,7 @@ import { AuthModule, AuthService } from '@modules/auth';
 
 import { DatabaseModule } from './modules/database';
 import { GoogleStorageModule } from '@modules/googlestorage/googlestorage.module';
+import { CommonModule } from '@modules/common';
 
 @Module({
   imports: [
@@ -15,6 +16,7 @@ import { GoogleStorageModule } from '@modules/googlestorage/googlestorage.module
     },
     AuthModule,
     GoogleStorageModule,
+    CommonModule
   ],
   providers: [AuthService],
   exports: [AuthService],
@@ -25,7 +27,7 @@ export class AppModule implements NestModule {
       .apply(TenantContextMiddleware)
       .forRoutes('*')
       .apply(AuthMiddleware)
-      .exclude('/swagger', '/health', '/auth/register', '/auth/login', {
+      .exclude('/swagger', '/health', '/auth/register', '/auth/login', '/common/profile-image', {
         path: '/authors',
         method: RequestMethod.GET,
       })
