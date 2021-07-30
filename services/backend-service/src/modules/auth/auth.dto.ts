@@ -2,7 +2,9 @@ import { ApiProperty } from '@nestjs/swagger';
 import { IsEmail, IsEnum, IsNotEmpty, IsString, IsUUID } from 'class-validator';
 import { UserRole, UserEntity } from '@entities';
 
-export class TokenJWTDTO {
+export class PayloadDTO {
+  public id: string;
+  public username: string;
   public access_token: string;
 }
 

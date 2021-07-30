@@ -5,6 +5,7 @@ import {
   Patch,
   Post,
   Query,
+  Res,
   UnauthorizedException,
   UseGuards,
 } from '@nestjs/common';
@@ -17,10 +18,12 @@ import {
   GenericUserResponse,
   LoginDTO,
   PaginationAuthDTO,
-  TokenJWTDTO,
+  PayloadDTO,
+  
 } from './auth.dto';
 import { AuthService } from './auth.service';
 import { UserEntity } from '@entities';
+import { Observable, of } from 'rxjs';
 
 @Controller('auth')
 @ApiTags('Credential')
@@ -36,7 +39,7 @@ export class AuthController {
   }
 
   @Post('login')
-  async login(@Body() payload: LoginDTO): Promise<TokenJWTDTO> {
+  async login(@Body() payload: LoginDTO): Promise<PayloadDTO> {
     const credential = await this.userService.veriffyUser(payload);
     if (!credential) {
       throw new UnauthorizedException();
@@ -59,4 +62,5 @@ export class AuthController {
   async changePassword(@Body() payload: ChangePasswordDTO): Promise<void> {
     return await this.userService.changePassword(payload.passwordUpdated);
   }
+ 
 }

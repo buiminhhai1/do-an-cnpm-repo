@@ -9,7 +9,7 @@ import { MailModule } from './mail/mail.module';
 import { MailService } from './mail/mail.service';
 import { SignatureModule } from '@modules/signature';
 import { TransactionModule } from '@modules/signed';
-
+import { CommonModule } from '@modules/common';
 @Module({
   imports: [
     DatabaseModule.register(),
@@ -22,6 +22,7 @@ import { TransactionModule } from '@modules/signed';
     MailModule,
     SignatureModule,
     TransactionModule,
+    CommonModule
   ],
   providers: [AuthService, MailService],
   exports: [AuthService, MailService],
@@ -32,7 +33,7 @@ export class AppModule implements NestModule {
       .apply(TenantContextMiddleware)
       .forRoutes('*')
       .apply(AuthMiddleware)
-      .exclude('/swagger', '/health', '/auth/register', '/auth/login', '/mail', {
+      .exclude('/swagger', '/health', '/auth/register', '/auth/login', '/mail', '/common/profile-image',{
         path: '/authors',
         method: RequestMethod.GET,
       })

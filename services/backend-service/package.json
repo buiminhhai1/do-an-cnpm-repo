@@ -24,7 +24,7 @@
     "test:e2e": "jest --config ./test/jest-e2e.json",
     "lint": "eslint ./src --ext .js,.ts",
     "mi:create": "yarn typeorm migration:create --dir ./src/migrations -n",
-    "mail:build": "cp -r ./src/mail/templates ./dist/src/mail "
+    "mail:build": "mkdir -p /usr/app/dist/src/mail && cp -r ./src/mail/templates ./dist/src/mail "
   },
   "dependencies": {
     "@nestjs-modules/mailer": "1.6.0",
@@ -34,7 +34,7 @@
     "@nestjs/jwt": "7.2.0",
     "@nestjs/microservices": "7.6.15",
     "@nestjs/passport": "7.1.5",
-    "@nestjs/platform-express": "7.6.15",
+    "@nestjs/platform-express": "^7.6.17",
     "@nestjs/swagger": "4.8.0",
     "@nestjs/terminus": "7.1.2",
     "@nestjs/testing": "7.6.15",
